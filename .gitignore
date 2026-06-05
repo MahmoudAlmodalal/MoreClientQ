@@ -1,0 +1,53 @@
+# Dependency directories
+node_modules/
+backend/.venv/
+backend/venv/
+.venv/
+venv/
+env/
+ENV/
+
+# Build outputs
+dist/
+build/
+backend/dist/
+frontend/.next/
+frontend/out/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!.env.example
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Logs
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker / local data mounts
+postgres_data/
+redis_data/
+chroma_data/
+minio_data/

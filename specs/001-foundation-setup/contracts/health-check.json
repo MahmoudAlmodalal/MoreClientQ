@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HealthCheckResponse",
+  "type": "OBJECT",
+  "properties": {
+    "status": {
+      "type": "STRING",
+      "enum": ["ok", "error"]
+    },
+    "timestamp": {
+      "type": "STRING",
+      "format": "date-time"
+    },
+    "services": {
+      "type": "OBJECT",
+      "properties": {
+        "database": {
+          "type": "OBJECT",
+          "properties": {
+            "status": { "type": "STRING", "enum": ["healthy", "unhealthy"] },
+            "latency_ms": { "type": "NUMBER" },
+            "error": { "type": ["STRING", "null"] }
+          },
+          "required": ["status"]
+        },
+        "redis": {
+          "type": "OBJECT",
+          "properties": {
+            "status": { "type": "STRING", "enum": ["healthy", "unhealthy"] },
+            "latency_ms": { "type": "NUMBER" },
+            "error": { "type": ["STRING", "null"] }
+          },
+          "required": ["status"]
+        },
+        "chromadb": {
+          "type": "OBJECT",
+          "properties": {
+            "status": { "type": "STRING", "enum": ["healthy", "unhealthy"] },
+            "latency_ms": { "type": "NUMBER" },
+            "error": { "type": ["STRING", "null"] }
+          },
+          "required": ["status"]
+        }
+      },
+      "required": ["database", "redis", "chromadb"]
+    }
+  },
+  "required": ["status", "timestamp", "services"]
+}
