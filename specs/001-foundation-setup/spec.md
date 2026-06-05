@@ -21,7 +21,7 @@ As a developer joining the project, I want to clone the repository and run a sin
 **Acceptance Scenarios**:
 
 1. **Given** a system with Docker and Git installed and a copy of the root `.env` configured, **When** I run `docker compose up -d --build`, **Then** the containers for Nginx, backend, frontend, postgres, redis, chromadb, minio, and celery workers/beat start up successfully.
-2. **Given** all services are up, **When** I execute `docker compose ps`, **Then** I see all containers running with the expected mapped ports (Nginx on 80, frontend on 3000, backend on 8000, postgres on 5432, redis on 6379, chromadb on 8000, minio console on 9001).
+2. **Given** all services are up, **When** I execute `docker compose ps`, **Then** I see all containers running with the expected mapped ports (Nginx on 80, frontend on 3000, backend on 8000, postgres on 5432, redis on 6379, chromadb on 8001, minio console on 9001).
 
 ---
 
