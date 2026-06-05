@@ -1,0 +1,472 @@
+openapi: 3.0.3
+info:
+  title: MoreClient AI Enterprise Platform API
+  version: 2.0.0
+  description: API endpoints for the multi-tenant AI customer support platform.
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register a new tenant account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, region]
+              properties:
+                name:
+                  type: string
+                  example: Acme Corp
+                email:
+                  type: string
+                  format: email
+                  example: admin@acme.com
+                password:
+                  type: string
+                  format: password
+                  example: "Secur3P@ssw0rd!"
+                region:
+                  type: string
+                  enum: [GCC, GLOBAL]
+                  example: GCC
+      responses:
+        '201':
+          description: Tenant and user registered successfully. Verification email sent.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenant_id:
+                    type: string
+                    format: uuid
+                  message:
+                    type: string
+
+  /api/v1/auth/verify:
+    get:
+      summary: Verify user email address
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified successfully. Access granted.
+
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate a user and return JWT session tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: Bearer
+
+  /api/v1/workspace:
+    get:
+      summary: Retrieve current workspace configuration
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Workspace configuration details.
+    put:
+      summary: Update workspace configuration (branding, localization, country, timezone)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_info:
+                  type: object
+                branding:
+                  type: object
+                timezone:
+                  type: string
+                country:
+                  type: string
+      responses:
+        '200':
+          description: Workspace updated successfully.
+
+  /api/v1/knowledge/upload:
+    post:
+      summary: Upload a knowledge document (with virus scan)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: File accepted for processing. Virus scan passed. Processing SLA is 2 min/MB.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  source_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: processing
+        '400':
+          description: File upload rejected (infected file, unsupported type, or storage quota exceeded).
+
+  /api/v1/knowledge/scrape:
+    post:
+      summary: Scrape a URL as a knowledge source (depth 1, max 50 pages per tenant)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/help"
+      responses:
+        '202':
+          description: URL accepted for scraping and indexing.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  source_id:
+                    type: string
+                    format: uuid
+                  pages_queued:
+                    type: integer
+                    maximum: 50
+        '400':
+          description: Invalid URL or tenant page cap (50) already reached.
+
+  /api/v1/chat/widget:
+    post:
+      summary: Send a message to the AI assistant widget (RAG Pipeline)
+      description: >
+        Triggers the full RAG pipeline: intent detection → query rewrite → embedding →
+        hybrid vector+keyword search → cross-encoder re-rank → cosine pruning (threshold 0.75)
+        → context assembly → LLM response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversation_id, message]
+              properties:
+                conversation_id:
+                  type: string
+                  format: uuid
+                message:
+                  type: string
+                  example: "How do I reset my password?"
+      responses:
+        '200':
+          description: Successful response from assistant.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                  confidence_score:
+                    type: number
+                    format: float
+                    minimum: 0
+                    maximum: 1
+                  escalated:
+                    type: boolean
+                    description: True if message triggered human agent escalation
+
+  /api/v1/conversations/{id}/resolve:
+    post:
+      summary: Mark an escalated conversation as resolved and trigger mandatory CSAT prompt
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation archived and CSAT prompt sent to customer in widget.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id:
+                    type: string
+                    format: uuid
+                  csat_triggered:
+                    type: boolean
+                    example: true
+
+  /api/v1/conversations/{id}/csat:
+    post:
+      summary: Submit CSAT rating from customer in widget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [score]
+              properties:
+                score:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '200':
+          description: CSAT score recorded.
+
+  /api/v1/training/failures:
+    get:
+      summary: List failed AI responses (low confidence, downvotes, hallucination reports)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of failed response records.
+
+  /api/v1/training/failures/{id}/answer:
+    post:
+      summary: Provide a correct answer for a failed AI response and embed into knowledge base
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answer]
+              properties:
+                answer:
+                  type: string
+      responses:
+        '200':
+          description: Answer embedded; failure record marked Resolved.
+
+  /api/v1/training/failures/{id}/reindex:
+    post:
+      summary: Flag a specific knowledge source file causing a hallucination and trigger re-indexing
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_id]
+              properties:
+                source_id:
+                  type: string
+                  format: uuid
+                  description: The knowledge source file to re-process and re-index
+      responses:
+        '202':
+          description: Re-indexing job queued for the specified knowledge source.
+
+  /api/v1/leads:
+    get:
+      summary: Retrieve sales leads captured from conversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of leads.
+
+  /api/v1/leads/{id}/stage:
+    put:
+      summary: Update a lead's pipeline stage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stage]
+              properties:
+                stage:
+                  type: string
+                  enum: [new, contacted, qualified, proposal, won, lost]
+      responses:
+        '200':
+          description: Lead stage updated and logged.
+
+  /api/v1/billing/subscription:
+    get:
+      summary: Get tenant subscription details and current usage (with 80%/100% alert status)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Usage statistics and Stripe plan details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan_type:
+                    type: string
+                  limits:
+                    type: object
+                  current_usage:
+                    type: object
+                  usage_alert_level:
+                    type: string
+                    enum: [none, warning_80, critical_100]
+                    description: Indicates if usage has crossed 80% or 100% of plan limit
+
+  /api/v1/exports/conversations:
+    get:
+      summary: Download conversation history export (CSV or JSON). Triggered via explicit download button.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csv, json]
+      responses:
+        '200':
+          description: Export file download. Scoped to authenticated tenant only.
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+
+  /api/v1/exports/leads:
+    get:
+      summary: Download leads export (CSV or JSON). Triggered via explicit download button.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csv, json]
+      responses:
+        '200':
+          description: Export file download. Scoped to authenticated tenant only.
+
+  /api/v1/exports/audit-logs:
+    get:
+      summary: Download audit log export (CSV or JSON). Triggered via explicit download button.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csv, json]
+      responses:
+        '200':
+          description: Export file download. Scoped to authenticated tenant only.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

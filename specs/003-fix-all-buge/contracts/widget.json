@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WidgetConfiguration",
+  "type": "object",
+  "required": [
+    "assistant_id",
+    "theme",
+    "primary_color",
+    "language_mode"
+  ],
+  "properties": {
+    "assistant_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the AI assistant"
+    },
+    "theme": {
+      "type": "string",
+      "enum": ["light", "dark", "auto"],
+      "default": "auto",
+      "description": "Visual theme mode"
+    },
+    "primary_color": {
+      "type": "string",
+      "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+      "default": "#0066cc",
+      "description": "Hex color code for the widget header and buttons"
+    },
+    "font_family": {
+      "type": "string",
+      "default": "Inter, sans-serif",
+      "description": "Font family used within the chat window"
+    },
+    "language_mode": {
+      "type": "string",
+      "enum": ["ar", "en", "auto"],
+      "default": "auto",
+      "description": "Default layout and language. 'auto' detects client browser locale"
+    },
+    "greeting_message": {
+      "type": "object",
+      "properties": {
+        "en": {
+          "type": "string",
+          "default": "Hello! How can we help you today?"
+        },
+        "ar": {
+          "type": "string",
+          "default": "مرحباً! كيف يمكننا مساعدتك اليوم؟"
+        }
+      },
+      "description": "Custom greeting message mapping per language"
+    },
+    "suggested_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 4,
+      "description": "List of suggested questions displayed on chat open"
+    },
+    "auto_open_delay": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 5,
+      "description": "Delay in seconds before the widget automatically pops open"
+    },
+    "offline_mode": {
+      "type": "object",
+      "required": ["enabled", "message"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "message": {
+          "type": "object",
+          "properties": {
+            "en": {
+              "type": "string",
+              "default": "We are currently offline. Please leave your details and we will get back to you."
+            },
+            "ar": {
+              "type": "string",
+              "default": "نحن خارج أوقات العمل حالياً. يرجى ترك بياناتك وسنقوم بالرد عليك قريباً."
+            }
+          }
+        }
+      },
+      "description": "Widget behavior when all live human agents are offline"
+    },
+    "csat": {
+      "type": "object",
+      "description": "CSAT prompt configuration. Prompt is mandatory after agent resolves an escalated conversation.",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Must remain true. CSAT prompt is mandatory per FR-017 / US-4 acceptance criterion."
+        },
+        "prompt": {
+          "type": "object",
+          "properties": {
+            "en": {
+              "type": "string",
+              "default": "How satisfied were you with our support today?"
+            },
+            "ar": {
+              "type": "string",
+              "default": "كيف كانت تجربتك مع فريق الدعم اليوم؟"
+            }
+          }
+        },
+        "scale": {
+          "type": "integer",
+          "enum": [5],
+          "default": 5,
+          "description": "Rating scale (1–5 stars)"
+        }
+      }
+    }
+  }
+}

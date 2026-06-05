@@ -1,0 +1,241 @@
+openapi: 3.0.3
+info:
+  title: MoreClient AI Enterprise Platform API
+  version: 2.0.0
+  description: API endpoints for the multi-tenant AI customer support platform.
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register a new tenant account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, region]
+              properties:
+                name:
+                  type: string
+                  example: Acme Corp
+                email:
+                  type: string
+                  format: email
+                  example: admin@acme.com
+                password:
+                  type: string
+                  format: password
+                  example: "Secur3P@ssw0rd!"
+                region:
+                  type: string
+                  enum: [GCC, GLOBAL]
+                  example: GCC
+      responses:
+        '201':
+          description: Tenant and user registered successfully. Verification email sent.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenant_id:
+                    type: string
+                    format: uuid
+                  message:
+                    type: string
+
+  /api/v1/auth/verify:
+    get:
+      summary: Verify user email address
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified successfully. Access granted.
+
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate a user and return JWT session tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: Bearer
+
+  /api/v1/workspace:
+    get:
+      summary: Retrieve current workspace configuration
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Workspace configuration details.
+    put:
+      summary: Update workspace configuration (branding, localization, country, timezone)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_info:
+                  type: object
+                branding:
+                  type: object
+                timezone:
+                  type: string
+                country:
+                  type: string
+      responses:
+        '200':
+          description: Workspace updated successfully.
+
+  /api/v1/knowledge/upload:
+    post:
+      summary: Upload a knowledge document (with virus scan)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: File accepted for processing. Virus scan passed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  source_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: processing
+        '400':
+          description: File upload rejected (e.g. infected file detected, unsupported type).
+
+  /api/v1/chat/widget:
+    post:
+      summary: Send a message to the AI assistant widget (RAG Pipeline)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversation_id, message]
+              properties:
+                conversation_id:
+                  type: string
+                  format: uuid
+                message:
+                  type: string
+                  example: "How do I reset my password?"
+      responses:
+        '200':
+          description: Successful response from assistant.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                  escalated:
+                    type: boolean
+                    description: True if message triggered human agent escalation
+
+  /api/v1/leads:
+    get:
+      summary: Retrieve sales leads captured from conversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of leads.
+  /api/v1/leads/{id}/stage:
+    put:
+      summary: Update a lead's pipeline stage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stage]
+              properties:
+                stage:
+                  type: string
+                  enum: [new, contacted, qualified, proposal, won, lost]
+      responses:
+        '200':
+          description: Lead stage updated and logged.
+
+  /api/v1/billing/subscription:
+    get:
+      summary: Get tenant subscription details and current usage limits
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Usage statistics and Stripe plan details.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
