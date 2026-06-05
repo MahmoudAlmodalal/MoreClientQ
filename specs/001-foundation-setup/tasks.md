@@ -52,8 +52,8 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Build and start all orchestrated dev containers via `docker compose up -d --build`
-- [ ] T010 [US1] Verify active running container statuses via `docker compose ps`
+- [/] T009 [US1] Build and start all orchestrated dev containers via `docker compose up -d --build`
+- [/] T010 [US1] Verify active running container statuses via `docker compose ps`
 
 **Checkpoint**: At this point, the local multi-service container environment is fully operational and testable.
 
