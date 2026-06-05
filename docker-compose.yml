@@ -17,6 +17,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      network: host
     ports:
       - "3000:3000"
     volumes:
@@ -35,6 +36,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      network: host
     ports:
       - "8000:8000"
     volumes:
@@ -63,6 +65,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      network: host
     command: celery -A app.tasks.celery_app worker -Q ingestion -c 4
     volumes:
       - ./backend:/app
@@ -89,6 +92,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      network: host
     command: celery -A app.tasks.celery_app beat --loglevel=info
     volumes:
       - ./backend:/app

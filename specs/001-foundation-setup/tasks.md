@@ -111,11 +111,11 @@
 
 ### Implementation for User Story 4
 
-- [/] T024 [US4] Scaffold Next.js 14 App Router project under `frontend/`
-- [/] T025 [US4] Configure build scripts inside `frontend/package.json`
-- [/] T026 [US4] Initialize shadcn/ui components configuration at `frontend/components.json`
-- [/] T027 [US4] Add and import a shadcn Button component in `frontend/app/page.tsx`
-- [/] T028 [US4] Verify web rendering of local frontend container by accessing `http://localhost:3000`
+- [ ] T024 [US4] Scaffold Next.js 14 App Router project under `frontend/` (temporarily moving Docker files to prevent directory conflicts, using non-interactive flags: `npx create-next-app@14 ./ --typescript --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-npm`)
+- [ ] T025 [US4] Configure build scripts inside `frontend/package.json` and restore Docker config files
+- [ ] T026 [US4] Initialize shadcn/ui components configuration at `frontend/components.json` using non-interactive flags (`npx shadcn@latest init -y`)
+- [ ] T027 [US4] Add and import a shadcn Button component in `frontend/app/page.tsx`
+- [ ] T028 [US4] Verify web rendering of local frontend container by accessing `http://localhost:3000`
 
 **Checkpoint**: At this point, the frontend skeleton is bootstrapped and shadcn/ui is ready to style components.
 
