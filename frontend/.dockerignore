@@ -1,0 +1,11 @@
+# Exclusions for frontend Docker build
+node_modules/
+.next/
+out/
+build/
+dist/
+*.log
+.git/
+.env
+.env*
+!.env.example

@@ -6,13 +6,19 @@ backend/venv/
 venv/
 env/
 ENV/
+.npm/
+.yarn/
+.pnpm-store/
 
 # Build outputs
 dist/
 build/
 backend/dist/
-frontend/.next/
-frontend/out/
+.next/
+out/
+.turbo/
+.vercel/
+*.tsbuildinfo
 
 # Environment variables
 .env
@@ -23,7 +29,7 @@ frontend/out/
 *.env
 !.env.example
 
-# Python caching
+# Python caching & tools
 __pycache__/
 *.pyc
 *.pyo
@@ -32,9 +38,12 @@ __pycache__/
 .coverage
 htmlcov/
 .mypy_cache/
+.ruff_cache/
 
-# Logs
+# Logs & Celery schedule
 *.log
+celerybeat-schedule
+celerybeat.pid
 
 # OS metadata
 .DS_Store
@@ -51,3 +60,5 @@ postgres_data/
 redis_data/
 chroma_data/
 minio_data/
+docker-compose.override.yml
+
