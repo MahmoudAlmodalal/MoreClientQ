@@ -14,6 +14,12 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+# Agent / Assistant metadata & configuration
+.agents/
+.claude/
+.specify/
+AGENTS.md
+CLAUDE.md
 
 # Python (Backend)
 __pycache__/
