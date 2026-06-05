@@ -20,8 +20,8 @@ As a developer joining the project, I want to clone the repository and run a sin
 
 **Acceptance Scenarios**:
 
-1. **Given** a system with Docker and Git installed and a copy of the root `.env` configured, **When** I run `docker compose up -d --build`, **Then** the containers for the backend, frontend, postgres, redis, chromadb, minio, and celery workers/beat start up successfully.
-2. **Given** all services are up, **When** I execute `docker compose ps`, **Then** I see all containers running with the expected mapped ports (frontend on 3000, backend on 8000, postgres on 5432, redis on 6379, chromadb on 8000, minio console on 9001).
+1. **Given** a system with Docker and Git installed and a copy of the root `.env` configured, **When** I run `docker compose up -d --build`, **Then** the containers for Nginx, backend, frontend, postgres, redis, chromadb, minio, and celery workers/beat start up successfully.
+2. **Given** all services are up, **When** I execute `docker compose ps`, **Then** I see all containers running with the expected mapped ports (Nginx on 80, frontend on 3000, backend on 8000, postgres on 5432, redis on 6379, chromadb on 8000, minio console on 9001).
 
 ---
 
@@ -80,7 +80,7 @@ As a frontend developer, I want to have a Next.js 14 App Router project with sha
 ### Functional Requirements
 
 - **FR-001**: Monorepo Structure: The monorepo MUST contain a `backend` directory (FastAPI monolith), a `frontend` directory (Next.js), an `nginx` directory (configuration), and a root `docker-compose.yml`.
-- **FR-002**: Multi-Service Orchestration: Docker Compose MUST orchestrate the following services: `frontend`, `backend`, `postgres`, `redis`, `chromadb`, `minio`, `celery_worker`, and `celery_beat`.
+- **FR-002**: Multi-Service Orchestration: Docker Compose MUST orchestrate the following services: `nginx`, `frontend`, `backend`, `postgres`, `redis`, `chromadb`, `minio`, `celery_worker`, and `celery_beat`.
 - **FR-003**: Unified Environment Configuration: A `.env.example` file MUST be placed in the project root containing all required environment variables for both backend and frontend services, aligned for easy local deployment.
 - **FR-004**: Database Schema Initialization: Alembic migrations MUST be set up in the `backend/` directory, initializing the relational schema for `tenants`, `users`, `assistants`, `documents`, `conversations`, `messages`, and `quota_logs`.
 - **FR-005**: Health Endpoint: The backend API MUST expose a `/health` endpoint that checks connection integrity for:

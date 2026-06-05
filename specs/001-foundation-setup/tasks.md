@@ -52,8 +52,8 @@
 
 ### Implementation for User Story 1
 
-- [/] T009 [US1] Build and start all orchestrated dev containers via `docker compose up -d --build`
-- [/] T010 [US1] Verify active running container statuses via `docker compose ps`
+- [x] T009 [US1] Build and start all orchestrated dev containers via `docker compose up -d --build`
+- [x] T010 [US1] Verify active running container statuses via `docker compose ps`
 
 **Checkpoint**: At this point, the local multi-service container environment is fully operational and testable.
 
@@ -67,13 +67,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Create FastAPI app factory and entrypoint at `backend/app/main.py`
-- [ ] T012 [US2] Create PostgreSQL database session provider at `backend/app/db/session.py`
-- [ ] T013 [US2] Create Redis connection client wrapper at `backend/app/core/redis_client.py`
-- [ ] T014 [US2] Create ChromaDB HTTP client connection at `backend/app/services/rag/chroma_client.py`
-- [ ] T015 [US2] Implement health check router and check logic at `backend/app/api/v1/health.py`
-- [ ] T016 [US2] Register health check router in the API routing table at `backend/app/api/v1/router.py`
-- [ ] T017 [US2] Validate health check endpoint response against `contracts/health-check.json` schema using Curl
+- [/] T011 [US2] Create FastAPI app factory and entrypoint at `backend/app/main.py`
+- [/] T012 [US2] Create PostgreSQL database session provider at `backend/app/db/session.py`
+- [/] T013 [US2] Create Redis connection client wrapper at `backend/app/core/redis_client.py`
+- [/] T014 [US2] Create ChromaDB HTTP client connection at `backend/app/services/rag/chroma_client.py`
+- [/] T015 [US2] Implement health check router and check logic at `backend/app/api/v1/health.py`
+- [/] T016 [US2] Register health check router in the API routing table at `backend/app/api/v1/router.py`
+- [/] T017 [US2] Validate health check endpoint response against `contracts/health-check.json` schema using Curl
 
 **Checkpoint**: At this point, the backend is bootstrapped and database/cache connection checking is functional.
 
