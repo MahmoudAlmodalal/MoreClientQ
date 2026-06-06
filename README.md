@@ -117,3 +117,47 @@ Here are common commands used during development:
 | Run Backend Tests | `docker compose exec backend pytest` |
 | Generate Migration | `docker compose exec backend alembic revision --autogenerate -m "description"` |
 | Apply Migrations | `docker compose exec backend alembic upgrade head` |
+
+---
+
+## 4. API Endpoints: Auth & Tenancy
+
+All endpoints are prefixed with `/api/v1/auth` unless otherwise noted.
+
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| POST | `/auth/register` | Register a new tenant and primary owner | No |
+| POST | `/auth/login` | Authenticate and receive JWT tokens | No |
+| POST | `/auth/refresh` | Generate new access token from refresh token | No |
+| POST | `/auth/logout` | Invalidate current JWT via Redis blocklist | Yes (Bearer) |
+| POST | `/auth/invite/accept` | Accept an invitation with token | No |
+| GET | `/auth/me` | Return verified JWT claims | Yes (Bearer) |
+| POST | `/users/invite` | Send a team invitation | Yes (Owner/Admin) |
+| GET | `/users` | List users in current tenant | Yes (Bearer) |
+| PATCH | `/users/{user_id}/role` | Update user role | Yes (Owner/Admin) |
+| DELETE | `/users/{user_id}` | Remove user from tenant | Yes (Owner/Admin) |
+| GET | `/tenants/resolve/{slug}` | Resolve tenant slug to ID | No |
+| DELETE | `/tenants/self` | Offboard tenant (cascade purge) | Yes (Owner) |
+
+### Authentication
+
+All protected endpoints require an `Authorization: Bearer <access_token>` header. Tenancy context is passed via the `X-Tenant-ID` header, which is validated against the JWT's `tenant_id` claim.
+
+### Environment Setup
+
+Create `backend/.env` with the following:
+
+```ini
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/platform
+REDIS_URL=redis://localhost:6379/0
+JWT_SECRET=super-secure-key-change-in-production
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
+
+Create `frontend/.env.local` with:
+
+```ini
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXTAUTH_SECRET=another-super-secure-session-secret
+```

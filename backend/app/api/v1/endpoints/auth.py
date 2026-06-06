@@ -24,6 +24,7 @@ from app.core.security import (
 from app.schemas.team import AcceptInviteRequest, AcceptInviteResponse, AcceptInviteData
 from app.services.auth import accept_invitation
 from app.core.config import settings
+from app.core.redis import redis_cache
 
 router = APIRouter()
 
@@ -161,6 +162,17 @@ async def refresh(
         "token_type": "bearer",
         "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
+
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(current_user: dict = Depends(get_current_user)):
+    """Invalidate the current JWT by adding its JTI to the Redis blocklist."""
+    jti = current_user.get("jti")
+    exp = current_user.get("exp")
+    if jti and exp:
+        remaining_ttl = int(exp - datetime.now(timezone.utc).timestamp())
+        if remaining_ttl > 0:
+            await redis_cache.set(f"jwt:blocklist:{jti}", "revoked", expire=remaining_ttl)
+    return {"message": "Successfully logged out"}
 
 @router.get("/me")
 async def me(current_user: dict = Depends(get_current_user)):

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False
 
     # Redis Settings
-    REDIS_URL: str = "redis://redis-service:6379"
+    REDIS_URL: str = "redis://127.0.0.1:6379"
 
     # ChromaDB Settings
     CHROMADB_HOST: str = "chromadb"

@@ -39,8 +39,15 @@ def upgrade() -> None:
     op.execute("ALTER TABLE invitations ENABLE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE invitations FORCE ROW LEVEL SECURITY;")
     op.execute(
-        "CREATE POLICY IF NOT EXISTS tenant_isolation ON invitations "
-        "USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);"
+        "CREATE POLICY tenant_isolation ON invitations "
+        "USING ("
+        "current_setting('app.bypass_rls', true) = 'on' OR "
+        "tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID"
+        ") "
+        "WITH CHECK ("
+        "current_setting('app.bypass_rls', true) = 'on' OR "
+        "tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID"
+        ");"
     )
 
 

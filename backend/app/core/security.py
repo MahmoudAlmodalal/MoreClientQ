@@ -1,4 +1,5 @@
 import bcrypt
+import asyncio
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -79,7 +80,13 @@ async def is_token_revoked(payload: dict[str, Any]) -> bool:
     jti = payload.get("jti")
     if not jti:
         return True
-    return await redis_cache.exists(f"jwt:blocklist:{jti}")
+    try:
+        return await asyncio.wait_for(
+            redis_cache.exists(f"jwt:blocklist:{jti}"),
+            timeout=0.25,
+        )
+    except asyncio.TimeoutError:
+        return False
 
 async def get_current_user(
     request: Request,

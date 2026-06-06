@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 pool = aioredis.ConnectionPool.from_url(
     settings.REDIS_URL,
     decode_responses=True,
-    max_connections=100
+    max_connections=100,
+    socket_connect_timeout=1,
+    socket_timeout=1,
 )
 
 redis_client = aioredis.Redis(connection_pool=pool)

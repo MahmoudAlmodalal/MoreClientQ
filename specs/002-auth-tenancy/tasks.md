@@ -158,8 +158,8 @@
 
 **Purpose**: General optimizations, documentation, and final validations
 
-- [ ] T035 Implement user logout invalidation via Redis token blocklist in `backend/app/api/v1/endpoints/auth.py`
-- [ ] T036 [P] Update developer documentations with endpoint details and setup requirements in `README.md`
+- [X] T035 Implement user logout invalidation via Redis token blocklist in `backend/app/api/v1/endpoints/auth.py`
+- [X] T036 [P] Update developer documentations with endpoint details and setup requirements in `README.md`
 - [ ] T037 Execute quickstart verification scripts to validate all workflows in `specs/002-auth-tenancy/quickstart.md`
 
 ---
