@@ -117,9 +117,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T028 [P] [US4] Implement embed code endpoint returning widget script in `backend/app/api/v1/endpoints/assistants.py`
-- [ ] T029 [US4] Add embed code modal and clipboard copy function in `frontend/components/assistants/embed-code-modal.tsx`
-- [ ] T030 [US4] Integrate embed code modal trigger in `frontend/components/assistants/assistant-card.tsx`
+- [X] T028 [P] [US4] Implement embed code endpoint returning widget script in `backend/app/api/v1/endpoints/assistants.py`
+- [X] T029 [US4] Add embed code modal and clipboard copy function in `frontend/components/assistants/embed-code-modal.tsx`
+- [X] T030 [US4] Integrate embed code modal trigger in `frontend/components/assistants/assistant-card.tsx`
 
 **Checkpoint**: All user stories are independently functional.
 
