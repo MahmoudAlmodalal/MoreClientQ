@@ -4,9 +4,15 @@ from typing import Any
 import jwt
 from app.core.config import settings
 
+from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security_scheme = HTTPBearer(auto_error=False)
+
 def create_token(
     subject: str,
     tenant_id: str,
+    tenant_slug: str,
     role: str,
     token_type: str,
     expires_delta: timedelta | None = None
@@ -24,6 +30,7 @@ def create_token(
     to_encode = {
         "sub": str(subject),
         "tenant_id": str(tenant_id),
+        "tenant_slug": tenant_slug,
         "role": role,
         "type": token_type,
         "exp": expire,
@@ -36,20 +43,22 @@ def create_token(
 def create_access_token(
     subject: str,
     tenant_id: str,
+    tenant_slug: str,
     role: str,
     expires_delta: timedelta | None = None
 ) -> str:
     """Create a stateless access JWT token."""
-    return create_token(subject, tenant_id, role, "access", expires_delta)
+    return create_token(subject, tenant_id, tenant_slug, role, "access", expires_delta)
 
 def create_refresh_token(
     subject: str,
     tenant_id: str,
+    tenant_slug: str,
     role: str,
     expires_delta: timedelta | None = None
 ) -> str:
     """Create a stateless refresh JWT token."""
-    return create_token(subject, tenant_id, role, "refresh", expires_delta)
+    return create_token(subject, tenant_id, tenant_slug, role, "refresh", expires_delta)
 
 def decode_token(token: str) -> dict[str, Any]:
     """Decode a JWT token. Raises PyJWTError if invalid or expired."""
@@ -62,3 +71,63 @@ def verify_token(token: str) -> dict[str, Any] | None:
         return payload
     except jwt.PyJWTError:
         return None
+
+async def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme)
+) -> dict[str, Any]:
+    """FastAPI dependency to extract and verify the access token from Authorization header."""
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = credentials.credentials
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Cross-validate X-Tenant-ID header if present in request (or request.state.tenant_id if set by middleware)
+    tenant_id_header = request.headers.get("X-Tenant-ID")
+    if tenant_id_header and payload.get("tenant_id") != tenant_id_header:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant mismatch",
+        )
+
+    # Also check if request.state.tenant_id is already set (by middleware in future phases)
+    tenant_id_state = getattr(request.state, "tenant_id", None)
+    if tenant_id_state and payload.get("tenant_id") != str(tenant_id_state):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant mismatch",
+        )
+
+    return payload
+
+
+import bcrypt
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plain password against its hash."""
+    try:
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
+        return False
+
+def get_password_hash(password: str) -> str:
+    """Generate bcrypt hash of password."""
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+

@@ -50,14 +50,14 @@
 **Independent Test**: Send POST to `/api/v1/auth/register`, verify db records are created for tenant (matching slug) and user (role='owner').
 
 ### Tests for User Story 1
-- [ ] T008 [P] [US1] Write integration tests for registration endpoint in `backend/tests/api/test_registration.py`
+- [X] T008 [P] [US1] Write integration tests for registration endpoint in `backend/tests/api/test_registration.py`
 
 ### Implementation for User Story 1
 - [X] T009 [P] [US1] Define SQLAlchemy database model for Tenant in `backend/app/models/tenant.py`
 - [X] T010 [P] [US1] Define SQLAlchemy database model for User in `backend/app/models/user.py`
 - [X] T011 [US1] Create Alembic migration script to create `tenants` and `users` tables in `backend/alembic/versions/`
-- [ ] T012 [P] [US1] Implement helper CRUD services for Tenant and User setup in `backend/app/services/user.py`
-- [ ] T013 [US1] Implement registration endpoint (`POST /api/v1/auth/register`) in `backend/app/api/v1/endpoints/auth.py`
+- [X] T012 [P] [US1] Implement helper CRUD services for Tenant and User setup in `backend/app/services/user.py`
+- [X] T013 [US1] Implement registration endpoint (`POST /api/v1/auth/register`) in `backend/app/api/v1/endpoints/auth.py`
 
 **Checkpoint**: User Story 1 is fully functional and testable independently.
 

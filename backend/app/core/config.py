@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     INTERNAL_SECRET: str = "internal-service-secret"
 
+    # CORS Settings
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://platform.localhost:3000",
+    ]
+    ALLOWED_ORIGIN_REGEX: str | None = "http://.*\\.localhost:3000"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
