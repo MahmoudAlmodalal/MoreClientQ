@@ -68,13 +68,8 @@ class ChromaClient:
         Uses the tenant-isolated ChromaDB collection name: tenant_{tenant_id}.
         """
         collection_name = f"tenant_{tenant_id}"
-        try:
-            collection = self.client.get_or_create_collection(name=collection_name)
-            collection.delete(where={"document_id": str(document_id)})
-        except Exception as e:
-            # If the collection doesn't exist, it might raise an error or just return.
-            # We wrap it to be safe.
-            pass
+        collection = self.client.get_or_create_collection(name=collection_name)
+        collection.delete(where={"document_id": str(document_id)})
 
 chroma_client = ChromaClient()
 

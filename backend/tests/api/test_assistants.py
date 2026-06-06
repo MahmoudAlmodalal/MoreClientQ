@@ -1,6 +1,7 @@
 import pytest
 import jwt
 import uuid
+from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
 from unittest.mock import MagicMock, patch
 from sqlalchemy import text, select
@@ -14,6 +15,20 @@ from app.models.document import Document
 from app.models.conversation import Conversation
 
 import pytest_asyncio
+
+
+def _make_access_token(role: str, tenant_id: str) -> str:
+    payload = {
+        "sub": str(uuid.uuid4()),
+        "tenant_id": tenant_id,
+        "tenant_slug": "acme",
+        "role": role,
+        "type": "access",
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "iat": datetime.now(timezone.utc),
+        "jti": str(uuid.uuid4()),
+    }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 async def _truncate_all():
     async with SessionLocal() as session:
@@ -29,10 +44,13 @@ async def cleanup_db():
 
 @pytest_asyncio.fixture
 async def registered_owner(client: AsyncClient):
+    unique_id = uuid.uuid4().hex[:8]
+    tenant_slug = f"acme{unique_id}"
+    owner_email = f"owner-{unique_id}@acme.com"
     payload = {
-        "tenant_slug": "acme",
+        "tenant_slug": tenant_slug,
         "tenant_name": "Acme Corp",
-        "owner_email": "owner@acme.com",
+        "owner_email": owner_email,
         "owner_password": "securepassword123",
         "owner_full_name": "Acme Owner"
     }
@@ -40,14 +58,14 @@ async def registered_owner(client: AsyncClient):
     assert reg_res.status_code == 201
     tenant_id = reg_res.json()["tenant"]["id"]
     login_res = await client.post("/api/v1/auth/login", json={
-        "email": "owner@acme.com",
+        "email": owner_email,
         "password": "securepassword123"
     })
     assert login_res.status_code == 200
     return {
         "tenant_id": tenant_id,
         "access_token": login_res.json()["access_token"],
-        "tenant_slug": "acme"
+        "tenant_slug": tenant_slug
     }
 
 @pytest.mark.asyncio
@@ -325,6 +343,54 @@ async def test_delete_assistant_cascade_cleanup(client: AsyncClient, registered_
         assert doc_check is None
 
 @pytest.mark.asyncio
+async def test_delete_assistant_cascade_cleanup_skips_minio_for_url_documents(client: AsyncClient, registered_owner):
+    tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        assistant = Assistant(
+            tenant_id=tenant_uuid,
+            name="URL Clean Bot",
+            system_prompt="system",
+            is_active=True
+        )
+        session.add(assistant)
+        await session.flush()
+
+        doc = Document(
+            tenant_id=tenant_uuid,
+            assistant_id=assistant.id,
+            filename="https://example.com/docs",
+            storage_key="url",
+            file_type="url",
+            status="ready"
+        )
+        session.add(doc)
+        await session.commit()
+        assistant_id = assistant.id
+        doc_id = doc.id
+
+    with patch("app.services.assistant.storage_service.delete_file") as mock_delete_file, \
+         patch("app.services.assistant.chroma_client.delete_document_vectors") as mock_delete_vectors:
+        response = await client.delete(
+            f"/api/v1/assistants/{assistant_id}",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            }
+        )
+        assert response.status_code == 204
+        mock_delete_file.assert_not_called()
+        mock_delete_vectors.assert_called_once_with(registered_owner["tenant_id"], str(doc_id))
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        ast_check = await session.get(Assistant, assistant_id)
+        doc_check = await session.get(Document, doc_id)
+        assert ast_check is None
+        assert doc_check is None
+
+@pytest.mark.asyncio
 async def test_delete_assistant_cleanup_failure_aborts_delete(client: AsyncClient, registered_owner):
     tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
 
@@ -395,8 +461,36 @@ async def test_get_widget_embed_code(client: AsyncClient, registered_owner):
     assert response.status_code == 200
     data = response.json()
     assert "snippet" in data
+    assert data["snippet"].startswith(f'<script src="{settings.WIDGET_BASE_URL}/widget.js"')
     assert f'data-assistant="{assistant_id}"' in data["snippet"]
+    assert 'data-theme="light"' in data["snippet"]
+    assert 'data-position="bottom-right"' in data["snippet"]
     assert "widget.js" in data["snippet"]
+
+
+@pytest.mark.asyncio
+async def test_get_widget_embed_code_rejects_member(client: AsyncClient, registered_owner):
+    create_res = await client.post(
+        "/api/v1/assistants",
+        headers={
+            "Authorization": f"Bearer {registered_owner['access_token']}",
+            "X-Tenant-ID": registered_owner["tenant_id"]
+        },
+        json={"name": "Member Blocked Embed Bot"}
+    )
+    assert create_res.status_code == 201
+    assistant_id = create_res.json()["id"]
+    member_token = _make_access_token("member", registered_owner["tenant_id"])
+
+    response = await client.get(
+        f"/api/v1/assistants/{assistant_id}/embed",
+        headers={
+            "Authorization": f"Bearer {member_token}",
+            "X-Tenant-ID": registered_owner["tenant_id"]
+        }
+    )
+
+    assert response.status_code == 403
 
 @pytest.mark.asyncio
 async def test_create_assistant_concurrency(client: AsyncClient, registered_owner):
@@ -429,4 +523,3 @@ async def test_create_assistant_concurrency(client: AsyncClient, registered_owne
 
     assert len(successes) == 1
     assert len(quota_exceeded) == 2
-

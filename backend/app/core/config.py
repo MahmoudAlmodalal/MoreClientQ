@@ -40,6 +40,18 @@ class Settings(BaseSettings):
     ]
     ALLOWED_ORIGIN_REGEX: str | None = "http://.*\\.localhost:3000"
 
+    # Public widget asset origin used in assistant embed snippets.
+    WIDGET_BASE_URL: str = "https://platform.com"
+
+    # LLM Settings
+    OPENAI_API_KEY: str = ""
+    LLM_PRIMARY_MODEL: str = "gpt-4o"
+    LLM_FALLBACK_MODEL: str = "gpt-4o-mini"
+    LLM_TIMEOUT_SECONDS: int = 30
+    RAG_TOP_K: int = 5
+    HANDOFF_KEYWORDS: str = "speak to human,/human,talk to agent,human please,support"
+
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

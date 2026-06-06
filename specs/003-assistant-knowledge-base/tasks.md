@@ -120,6 +120,7 @@
 - [X] T028 [P] [US4] Implement embed code endpoint returning widget script in `backend/app/api/v1/endpoints/assistants.py`
 - [X] T029 [US4] Add embed code modal and clipboard copy function in `frontend/components/assistants/embed-code-modal.tsx`
 - [X] T030 [US4] Integrate embed code modal trigger in `frontend/components/assistants/assistant-card.tsx`
+- [X] T030A [US4] Add backend tests verifying embed snippet assistant ID, widget options, public widget origin, and owner/admin-only access in `backend/tests/api/test_assistants.py`
 
 **Checkpoint**: All user stories are independently functional.
 

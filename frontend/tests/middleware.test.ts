@@ -91,7 +91,7 @@ function makeRequest(
   host: string
 ): {
   nextUrl: { pathname: string; clone: () => { pathname: string } };
-  headers: { get: (name: string) => string | null };
+  headers: Headers;
 } {
   return {
     nextUrl: {
@@ -100,12 +100,7 @@ function makeRequest(
         return { pathname };
       },
     },
-    headers: {
-      get(name: string) {
-        if (name === "host") return host;
-        return null;
-      },
-    },
+    headers: new Headers({ host }),
   };
 }
 

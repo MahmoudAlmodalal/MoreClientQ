@@ -67,11 +67,10 @@ async def async_ingest_document(self, document_id: str):
             return
 
         # Initialize retry tracking in metadata
-        if not isinstance(doc.doc_metadata, dict):
-            doc.doc_metadata = {}
-        
-        current_attempt = doc.doc_metadata.get("retry_count", 0) + 1
-        doc.doc_metadata["retry_count"] = current_attempt
+        metadata = dict(doc.doc_metadata or {})
+        current_attempt = metadata.get("retry_count", 0) + 1
+        metadata["retry_count"] = current_attempt
+        doc.doc_metadata = metadata
 
         # 2. Update status to processing
         doc.status = "processing"

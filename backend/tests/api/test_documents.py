@@ -9,6 +9,7 @@ from sqlalchemy import select, text
 from app.db.session import SessionLocal, enable_rls_bypass, set_tenant_context
 from app.models.assistant import Assistant
 from app.models.document import Document
+from app.models.tenant import Tenant
 
 async def _truncate_all():
     async with SessionLocal() as session:
@@ -178,6 +179,53 @@ async def test_upload_document_quota_exceeded(client: AsyncClient, registered_ow
     )
     assert response.status_code == 400
     assert "Limit of 5 documents exceeded for your plan." in response.json()["detail"]
+
+@pytest.mark.asyncio
+async def test_upload_document_storage_quota_exceeded_before_upload(client: AsyncClient, registered_owner, sample_assistant):
+    tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        tenant = await session.get(Tenant, tenant_uuid)
+        tenant.plan = "pro"
+        doc = Document(
+            tenant_id=tenant_uuid,
+            assistant_id=sample_assistant,
+            filename="almost-full.txt",
+            storage_key="tenant/acme/docs/almost-full.txt",
+            file_type="txt",
+            status="ready",
+            doc_metadata={"file_size": 100 * 10 * 1024 * 1024 - 1}
+        )
+        session.add(doc)
+        await session.commit()
+
+    file_io = io.BytesIO(b"xx")
+    with patch("app.api.v1.endpoints.documents.storage_service.upload_file") as mock_upload, \
+         patch("app.api.v1.endpoints.documents.ingest_document.delay") as mock_celery:
+        response = await client.post(
+            "/api/v1/documents/upload",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            },
+            data={"assistant_id": str(sample_assistant)},
+            files={"file": ("overflow.txt", file_io, "text/plain")}
+        )
+
+        assert response.status_code == 400
+        assert "storage quota exceeded" in response.json()["detail"]
+        mock_upload.assert_not_called()
+        mock_celery.assert_not_called()
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        result = await session.execute(
+            select(Document).where(
+                Document.tenant_id == tenant_uuid,
+                Document.filename == "overflow.txt"
+            )
+        )
+        assert result.scalar_one_or_none() is None
 
 @pytest.mark.asyncio
 async def test_upload_document_size_limit(client: AsyncClient, registered_owner, sample_assistant):
@@ -443,4 +491,3 @@ async def test_delete_document_not_found(client: AsyncClient, registered_owner):
     )
     assert response.status_code == 404
     assert "Document not found" in response.json()["detail"]
-

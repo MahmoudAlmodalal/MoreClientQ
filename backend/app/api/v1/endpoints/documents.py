@@ -45,7 +45,11 @@ async def _verify_assistant(db: AsyncSession, tenant_id: uuid.UUID, assistant_id
         )
     return assistant
 
-async def _check_document_quota(db: AsyncSession, tenant_id: uuid.UUID) -> None:
+async def _check_document_quota(
+    db: AsyncSession,
+    tenant_id: uuid.UUID,
+    incoming_file_size: int = 0,
+) -> None:
     tenant_res = await db.execute(
         select(Tenant).where(Tenant.id == tenant_id).with_for_update()
     )
@@ -66,6 +70,27 @@ async def _check_document_quota(db: AsyncSession, tenant_id: uuid.UUID) -> None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Limit of {quota.max_documents} documents exceeded for your plan."
+            )
+
+    if quota.max_storage_bytes is not None and incoming_file_size > 0:
+        storage_res = await db.execute(
+            select(
+                func.coalesce(
+                    func.sum(
+                        func.coalesce(
+                            Document.doc_metadata["file_size"].as_integer(),
+                            0,
+                        )
+                    ),
+                    0,
+                )
+            ).where(Document.tenant_id == tenant_id)
+        )
+        current_storage_bytes = storage_res.scalar_one()
+        if current_storage_bytes + incoming_file_size > quota.max_storage_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="storage quota exceeded"
             )
 
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
@@ -116,7 +141,7 @@ async def upload_document(
         )
 
     # 5. Check resource quotas
-    await _check_document_quota(db, tenant_id)
+    await _check_document_quota(db, tenant_id, incoming_file_size=file_size)
 
     # 6. Upload file to MinIO
     doc_id = uuid.uuid4()
@@ -143,7 +168,7 @@ async def upload_document(
         storage_key=storage_key,
         file_type=suffix,
         status="pending",
-        doc_metadata={}
+        doc_metadata={"file_size": file_size}
     )
     db.add(document)
     await db.commit()
@@ -345,4 +370,3 @@ async def delete_document(
     # 4. Delete document record from DB
     await db.delete(document)
     await db.commit()
-

@@ -1181,12 +1181,12 @@ jobs:
 - [x] Login + Register pages (frontend)
 
 ### Phase 2 — Assistant & Knowledge Base (Weeks 3–4)
-- [ ] Assistant CRUD API + frontend pages
-- [ ] MinIO/S3 file upload endpoint
-- [ ] Celery ingestion pipeline (PDF, DOCX, URL)
-- [ ] ChromaDB per-tenant collection creation
-- [ ] Document list with status polling (Server-Sent Events or polling)
-- [ ] Document delete + ChromaDB cleanup
+- [x] Assistant CRUD API + frontend pages
+- [x] MinIO/S3 file upload endpoint
+- [x] Celery ingestion pipeline (PDF, DOCX, URL)
+- [x] ChromaDB per-tenant collection creation
+- [x] Document list with status polling (Server-Sent Events or polling)
+- [x] Document delete + ChromaDB cleanup
 
 ### Phase 3 — Chat Engine (Week 5)
 - [ ] REST chat endpoint (non-streaming)

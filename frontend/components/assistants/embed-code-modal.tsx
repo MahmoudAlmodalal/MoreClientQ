@@ -15,6 +15,7 @@ export default function EmbedCodeModal({ assistant, onClose }: EmbedCodeModalPro
   const [snippet, setSnippet] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState(true);
   const [isCopied, setIsCopied] = React.useState(false);
+  const [copyError, setCopyError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchEmbedCode = async () => {
@@ -37,10 +38,16 @@ export default function EmbedCodeModal({ assistant, onClose }: EmbedCodeModalPro
     }
   }, [assistant.id]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(snippet);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+  const handleCopy = async () => {
+    setCopyError(null);
+    try {
+      await navigator.clipboard.writeText(snippet);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      setIsCopied(false);
+      setCopyError("Unable to copy the snippet to the clipboard.");
+    }
   };
 
   return (
@@ -91,6 +98,12 @@ export default function EmbedCodeModal({ assistant, onClose }: EmbedCodeModalPro
                   </>
                 )}
               </button>
+            </div>
+          )}
+
+          {copyError && (
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {copyError}
             </div>
           )}
 

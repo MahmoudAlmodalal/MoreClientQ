@@ -147,13 +147,14 @@ async def delete_assistant(
 
     # 4. Delete MinIO objects and ChromaDB vectors for each document
     for doc in documents:
-        # Delete file from MinIO (run in threadpool since storage_service is synchronous)
-        try:
-            await asyncio.to_thread(storage_service.delete_file, doc.storage_key)
-        except Exception as exc:
-            cleanup_errors.append(
-                f"MinIO cleanup failed for document {doc.id}: {exc}"
-            )
+        # URL-ingested documents do not have MinIO objects.
+        if doc.storage_key and doc.storage_key != "url":
+            try:
+                await asyncio.to_thread(storage_service.delete_file, doc.storage_key)
+            except Exception as exc:
+                cleanup_errors.append(
+                    f"MinIO cleanup failed for document {doc.id}: {exc}"
+                )
 
         # Delete vectors from ChromaDB (run in threadpool since chromadb client is synchronous)
         try:
