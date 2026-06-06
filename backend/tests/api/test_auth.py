@@ -2,7 +2,7 @@ import pytest
 import uuid
 import jwt
 from httpx import AsyncClient
-from sqlalchemy import select, delete, update
+from sqlalchemy import text, update
 from app.db.session import SessionLocal
 from app.models.tenant import Tenant
 from app.models.user import User
@@ -13,19 +13,17 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 import pytest_asyncio
 
+async def _truncate_all():
+    """Truncate all tenant-related tables bypassing RLS."""
+    async with SessionLocal() as session:
+        await session.execute(text("TRUNCATE TABLE users, tenants CASCADE"))
+        await session.commit()
+
 @pytest_asyncio.fixture(autouse=True)
 async def cleanup_db():
-    # Run before test
-    async with SessionLocal() as session:
-        await session.execute(delete(User))
-        await session.execute(delete(Tenant))
-        await session.commit()
+    await _truncate_all()
     yield
-    # Run after test
-    async with SessionLocal() as session:
-        await session.execute(delete(User))
-        await session.execute(delete(Tenant))
-        await session.commit()
+    await _truncate_all()
 
 @pytest_asyncio.fixture
 async def registered_user(client: AsyncClient):
@@ -218,3 +216,26 @@ async def test_dependency_get_current_user():
         await get_current_user(request, credentials=credentials)
     assert exc_info.value.status_code == 401
     assert "invalid" in exc_info.value.detail.lower()
+
+@pytest.mark.asyncio
+async def test_tenant_header_spoofing_rejected(client: AsyncClient, registered_user):
+    """Verify that a mismatched X-Tenant-ID header is rejected even with a valid JWT."""
+    # Login to get a valid access token
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    })
+    assert login_res.status_code == 200
+    access_token = login_res.json()["access_token"]
+
+    # Send a request with a spoofed X-Tenant-ID that doesn't match the token's tenant_id
+    spoofed_tenant_id = "00000000-0000-0000-0000-000000000000"
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "X-Tenant-ID": spoofed_tenant_id,
+        }
+    )
+    assert response.status_code == 403
+    assert "tenant mismatch" in response.json()["detail"].lower()

@@ -1,31 +1,24 @@
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import select, delete
+from sqlalchemy import select, text
 from app.db.session import SessionLocal
 from app.models.tenant import Tenant
 from app.models.user import User
 
 import pytest_asyncio
 
+async def _truncate_all():
+    """Truncate all tenant-related tables bypassing RLS."""
+    async with SessionLocal() as session:
+        # TRUNCATE bypasses RLS entirely
+        await session.execute(text("TRUNCATE TABLE users, tenants CASCADE"))
+        await session.commit()
+
 @pytest_asyncio.fixture(autouse=True)
 async def cleanup_db():
-    # Run before test
-    try:
-        async with SessionLocal() as session:
-            await session.execute(delete(User))
-            await session.execute(delete(Tenant))
-            await session.commit()
-    except Exception as e:
-        print(f"\n[FIXTURE BEFORE ERROR] {type(e).__name__}: {e}\n")
+    await _truncate_all()
     yield
-    # Run after test
-    try:
-        async with SessionLocal() as session:
-            await session.execute(delete(User))
-            await session.execute(delete(Tenant))
-            await session.commit()
-    except Exception as e:
-        print(f"\n[FIXTURE AFTER ERROR] {type(e).__name__}: {e}\n")
+    await _truncate_all()
 
 
 

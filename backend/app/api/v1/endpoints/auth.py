@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import datetime, timezone
 import uuid
 
@@ -14,6 +13,7 @@ from app.schemas.auth import (
 )
 from app.services.user import register_tenant_with_owner, get_user_by_email
 from app.models.tenant import Tenant
+from app.models.user import User
 from app.core.security import (
     verify_password,
     create_access_token,
@@ -113,7 +113,6 @@ async def refresh(
         )
 
     # Fetch user
-    from app.models.user import User
     user = await db.get(User, uuid.UUID(user_id))
     if not user or not user.is_active:
         raise HTTPException(

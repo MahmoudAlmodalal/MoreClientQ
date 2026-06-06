@@ -70,12 +70,12 @@
 **Independent Test**: POST credentials to `/api/v1/auth/login`, verify JWT payload contains `sub`, `tenant_id`, and `role`, and call `/refresh`.
 
 ### Tests for User Story 2
-- [ ] T014 [P] [US2] Write integration tests for login and token refresh flows in `backend/tests/api/test_auth.py`
+- [X] T014 [P] [US2] Write integration tests for login and token refresh flows in `backend/tests/api/test_auth.py`
 
 ### Implementation for User Story 2
-- [ ] T015 [P] [US2] Implement secure password hashing and verification helpers in `backend/app/core/security.py`
-- [ ] T016 [US2] Implement JWT authentication dependency/middleware verification in `backend/app/core/security.py`
-- [ ] T017 [US2] Implement login (`POST /api/v1/auth/login`) and refresh (`POST /api/v1/auth/refresh`) routes in `backend/app/api/v1/endpoints/auth.py`
+- [X] T015 [P] [US2] Implement secure password hashing and verification helpers in `backend/app/core/security.py`
+- [X] T016 [US2] Implement JWT authentication dependency/middleware verification in `backend/app/core/security.py`
+- [X] T017 [US2] Implement login (`POST /api/v1/auth/login`) and refresh (`POST /api/v1/auth/refresh`) routes in `backend/app/api/v1/endpoints/auth.py`
 
 **Checkpoint**: User Stories 1 & 2 are functional together.
 
