@@ -1,3 +1,4 @@
+# Trigger hot reload to reset connection pool
 import logging
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware

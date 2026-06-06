@@ -1,5 +1,5 @@
 from app.db.session import Base, TenantMixin
-from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, text, Index
+from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, text, Index, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 class Message(Base, TenantMixin):
@@ -29,4 +29,6 @@ class Message(Base, TenantMixin):
     __table_args__ = (
         Index("idx_messages_conversation", "conversation_id"),
         Index("idx_messages_tenant_created", "tenant_id", text("created_at DESC")),
+        CheckConstraint("role IN ('user', 'assistant', 'system')", name="check_messages_role"),
+        CheckConstraint("COALESCE(tokens_used, 0) >= 0", name="check_messages_tokens_used_nonnegative"),
     )

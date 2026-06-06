@@ -1189,12 +1189,12 @@ jobs:
 - [x] Document delete + ChromaDB cleanup
 
 ### Phase 3 — Chat Engine (Week 5)
-- [ ] REST chat endpoint (non-streaming)
-- [ ] WebSocket streaming endpoint
-- [ ] RAG retrieval + LLM integration
-- [ ] Conversation + Message persistence
-- [ ] Token usage tracking + quota enforcement
-- [ ] Human handoff protocol + Redis Pub/Sub
+- [x] REST chat endpoint (non-streaming)
+- [x] WebSocket streaming endpoint
+- [x] RAG retrieval + LLM integration
+- [x] Conversation + Message persistence
+- [x] Token usage tracking + quota enforcement
+- [x] Human handoff protocol + Redis Pub/Sub
 
 ### Phase 4 — Landing Page (Week 6)
 - [ ] Marketing layout and navigation

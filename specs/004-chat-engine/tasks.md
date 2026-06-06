@@ -22,9 +22,10 @@
 
 **Purpose**: Extend project configuration and install new dependencies required by the Chat Engine. Must complete before any Phase 2 work.
 
-- [ ] T001 Add `openai>=1.30.0` to `backend/requirements.txt`, then rebuild and restart the backend container: `docker compose build backend && docker compose up -d backend`
-- [ ] T002 [P] Add LLM configuration fields to `backend/app/core/config.py`: `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_TIMEOUT_SECONDS` (int, default 30), `RAG_TOP_K` (int, default 5), `HANDOFF_KEYWORDS` (comma-separated string)
-- [ ] T003 [P] Update `.env` and `.env.example` with the new LLM + handoff env vars documented in `specs/004-chat-engine/quickstart.md`
+- [X] T001 Add `openai>=1.30.0` to `backend/requirements.txt`, then rebuild and restart the backend container: `docker compose build backend && docker compose up -d backend`
+- [X] T002 [P] Add LLM configuration fields to `backend/app/core/config.py`: `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_TIMEOUT_SECONDS` (int, default 30), `RAG_TOP_K` (int, default 5), `HANDOFF_KEYWORDS` (comma-separated string)
+- [X] T003 [P] Update `.env` and `.env.example` with the new LLM + handoff env vars documented in `specs/004-chat-engine/quickstart.md`
+
 
 ---
 
@@ -34,19 +35,19 @@
 
 **⚠️ CRITICAL**: This phase blocks all story phases below.
 
-- [ ] T004 Write Alembic migration `backend/alembic/versions/20260606_001_add_chat_engine_schema.py`:
+- [X] T004 Write Alembic migration `backend/alembic/versions/20260606_001_add_chat_engine_schema.py`:
   - Add `title VARCHAR(255) NULL` column to `conversations`
   - Alter `status` column: change default to `'bot'`, add `CHECK (status IN ('bot', 'handoff', 'closed'))`
   - Add index `idx_conversations_status` on `(tenant_id, status)`
   - `ALTER TABLE conversations ENABLE ROW LEVEL SECURITY`
   - `ALTER TABLE messages ENABLE ROW LEVEL SECURITY`
   - Create `FOR ALL` RLS policy on `conversations` and `messages` using `current_setting('app.current_tenant_id')`
-- [ ] T005 Apply the migration: run `docker compose exec backend alembic upgrade head` and verify it succeeds without errors
-- [ ] T006 [P] Update `backend/app/models/conversation.py`:
+- [X] T005 Apply the migration: run `docker compose exec backend alembic upgrade head` and verify it succeeds without errors
+- [X] T006 [P] Update `backend/app/models/conversation.py`:
   - Add `title = Column(String(255), nullable=True)` field
   - Update `status` column default to `"bot"` and add `CheckConstraint` with allowed values `('bot', 'handoff', 'closed')`
   - Add `idx_conversations_status` index to `__table_args__`
-- [ ] T007 [P] Create `backend/app/schemas/chat.py` with Pydantic models:
+- [X] T007 [P] Create `backend/app/schemas/chat.py` with Pydantic models:
   - `ChatRequest(assistant_id: UUID, conversation_id: UUID | None, message: str)` with `max_length=4000` validator
   - `ChatResponse(conversation_id, message_id, role, content, tokens_used, sources, model_used)`
   - `SourceReference(document_id, chunk_text, score)`
@@ -55,8 +56,8 @@
   - `WSDoneEvent(type="done", conversation_id, message_id, tokens_used, model_used, sources)`
   - `WSErrorEvent(type="error", code: str, detail: str)`
   - `WSHandoffEvent(type="handoff", conversation_id, detail: str)`
-- [ ] T008 [P] Extend `backend/app/services/rag/chroma_client.py` with an async `retrieve(tenant_id, query_text, top_k) -> list[SourceReference]` method that queries the `tenant_{uuid}` collection and returns the top-k chunks with scores
-- [ ] T009 [P] Create stub `backend/app/services/handoff_service.py` with:
+- [X] T008 [P] Extend `backend/app/services/rag/chroma_client.py` with an async `retrieve(tenant_id, query_text, top_k) -> list[SourceReference]` method that queries the `tenant_{uuid}` collection and returns the top-k chunks with scores
+- [X] T009 [P] Create stub `backend/app/services/handoff_service.py` with:
   - `is_handoff_trigger(message: str) -> bool` returning `False` always (no-op stub so it can be imported by T012's REST endpoint without error; full implementation done in Phase 5 T024)
   - `async trigger_handoff(tenant_id, conversation_id, assistant_id)` as a `pass` stub
 
@@ -72,15 +73,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Create `backend/app/services/quota_service.py`:
+- [X] T010 [P] [US1] Create `backend/app/services/quota_service.py`:
   - `async check_quota(tenant_id, required_tokens=0) -> bool` — reads Redis key `quota:{tenant_id}:{YYYYMMDDHH}` and compares to the tenant's hourly limit (read from `tenants.token_quota_hourly` DB column, falling back to `config.DEFAULT_HOURLY_TOKEN_QUOTA`); returns `False` if at or above limit
   - `async consume_quota(tenant_id, tokens_used: int)` — atomically `INCRBY` the Redis quota key and sets a 2-hour TTL
   - `async get_remaining_quota(tenant_id) -> int` — returns remaining budget for current hour
-- [ ] T011 [P] [US1] Create `backend/app/services/llm_service.py`:
+- [X] T011 [P] [US1] Create `backend/app/services/llm_service.py`:
   - `async complete(messages, model, stream=False)` — calls `AsyncOpenAI` with the given model; on `APIStatusError` (429/503) or `asyncio.TimeoutError`, raises `LLMUnavailableError`
   - `async complete_with_fallback(messages, stream=False)` — tries `LLM_PRIMARY_MODEL` first; on failure, tries `LLM_FALLBACK_MODEL`; on double failure raises `LLMUnavailableError`
   - Define `LLMUnavailableError(Exception)` custom exception
-- [ ] T012 [US1] Create `backend/app/services/chat_service.py` with `async chat(tenant_id, assistant_id, conversation_id, user_content) -> ChatResponse`:
+- [X] T012 [US1] Create `backend/app/services/chat_service.py` with `async chat(tenant_id, assistant_id, conversation_id, user_content) -> ChatResponse`:
   1. Validate assistant belongs to tenant (DB query with RLS context)
   2. Create or load conversation record
   3. Pre-flight `quota_service.check_quota(tenant_id)`; raise `QuotaExceededError` if failed
@@ -92,7 +93,7 @@
   9. Persist assistant `Message` record (role="assistant") with `tokens_used`, `sources`, `latency_ms`
   10. Call `quota_service.consume_quota(tenant_id, tokens_used)`
   11. Return `ChatResponse`
-- [ ] T013 [US1] Create `backend/app/api/v1/endpoints/chat.py`:
+- [X] T013 [US1] Create `backend/app/api/v1/endpoints/chat.py`:
   - `POST /` route mapped to `POST /api/v1/chat` via the router
   - Validate JWT + `X-Tenant-ID` header via existing auth dependency
   - Parse `ChatRequest` body
@@ -100,15 +101,15 @@
   - Call `chat_service.chat(...)` and return `ChatResponse`
   - Handle `QuotaExceededError` → 429, `AssistantNotFoundError` → 404, `LLMUnavailableError` → 503, `ConversationInHandoffError` → 409
   - Add `no-store` Cache-Control header to response to prevent upstream caching of sensitive conversation data
-- [ ] T014 [US1] Register the new chat router in `backend/app/api/v1/router.py`: `router.include_router(chat_router, prefix="/chat", tags=["chat"])`
-- [ ] T015 [P] [US1] Create Next.js chat page at `frontend/app/dashboard/assistants/[id]/chat/page.tsx`:
+- [X] T014 [US1] Register the new chat router in `backend/app/api/v1/router.py`: `router.include_router(chat_router, prefix="/chat", tags=["chat"])`
+- [X] T015 [P] [US1] Create Next.js chat page at `frontend/app/dashboard/assistants/[id]/chat/page.tsx`:
   - Server component that renders the `ChatWindow` client component
   - Pass `assistantId` from route params, `tenantId` from session
-- [ ] T016 [P] [US1] Create `frontend/lib/chat-api.ts` with:
+- [X] T016 [P] [US1] Create `frontend/lib/chat-api.ts` with:
   - `sendMessage(assistantId, conversationId, message): Promise<ChatResponse>` — calls `POST /api/v1/chat`
   - `createWebSocket(assistantId, tenantId, token): WebSocket` — builds WS URL with query params
-- [ ] T017 [P] [US1] Create `frontend/components/chat/MessageBubble.tsx` — renders a single message with role-based styling (`user` right-aligned, `assistant` left-aligned with source footnotes)
-- [ ] T018 [US1] Create `frontend/components/chat/ChatWindow.tsx` — client component with:
+- [X] T017 [P] [US1] Create `frontend/components/chat/MessageBubble.tsx` — renders a single message with role-based styling (`user` right-aligned, `assistant` left-aligned with source footnotes)
+- [X] T018 [US1] Create `frontend/components/chat/ChatWindow.tsx` — client component with:
   - Message list using `MessageBubble`
   - Text input + send button
   - Calls `chat-api.sendMessage` on submit and appends response to message list
@@ -126,23 +127,23 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Extend `backend/app/services/chat_service.py` with `async stream_chat(tenant_id, assistant_id, conversation_id, user_content) -> AsyncGenerator`:
+- [X] T019 [US2] Extend `backend/app/services/chat_service.py` with `async stream_chat(tenant_id, assistant_id, conversation_id, user_content) -> AsyncGenerator`:
   - Steps 1–6 same as `chat()` (validate, quota check, history, RAG retrieval + no-context fallback, build messages)
   - Call `llm_service.complete_with_fallback(messages, stream=True)` to get an `AsyncStream`
   - Yield each `ChatCompletionChunk.choices[0].delta.content` token via an `async for` loop
   - After each token, check running token count; if quota exceeded, yield a `quota_exceeded` sentinel and break
   - On loop completion, persist user + assistant messages; yield a `done` sentinel with final metadata
   - On `asyncio.CancelledError` (client disconnect), persist partial response with `[response truncated]`
-- [ ] T020 [US2] Create `backend/app/api/v1/endpoints/ws_chat.py`:
+- [X] T020 [US2] Create `backend/app/api/v1/endpoints/ws_chat.py`:
   - `WebSocket` route at `GET /ws/chat` (registered at `/api/v1/ws/chat`)
   - On connect: extract `token`, `tenant_id`, `assistant_id` from query params; validate JWT; close with `4001`/`4003` on failure
   - Message loop: receive JSON, dispatch on `type`:
     - `"ping"` → send `{"type":"pong"}`
     - `"message"` → call `chat_service.stream_chat(...)`, iterate async generator, send `token` events, handle `quota_exceeded` sentinel → send `WSErrorEvent`, handle `done` sentinel → send `WSDoneEvent`
   - On `WebSocketDisconnect` mid-stream: cancel generator, partial message already persisted by service
-- [ ] T021 [US2] Register the WebSocket router in `backend/app/api/v1/router.py`: `router.include_router(ws_router, prefix="/ws", tags=["chat-ws"])`
-- [ ] T022 [P] [US2] Create `frontend/components/chat/StreamingDot.tsx` — animated three-dot typing indicator shown while a WebSocket stream is in progress
-- [ ] T023 [US2] Update `frontend/components/chat/ChatWindow.tsx` to use WebSocket as the primary transport:
+- [X] T021 [US2] Register the WebSocket router in `backend/app/api/v1/router.py`: `router.include_router(ws_router, prefix="/ws", tags=["chat-ws"])`
+- [X] T022 [P] [US2] Create `frontend/components/chat/StreamingDot.tsx` — animated three-dot typing indicator shown while a WebSocket stream is in progress
+- [X] T023 [US2] Update `frontend/components/chat/ChatWindow.tsx` to use WebSocket as the primary transport:
   - On mount, call `chat-api.createWebSocket(...)` and store the connection
   - On send: transmit `{"type":"message",...}` JSON frame
   - On `token` event: append delta to the in-progress assistant bubble in state
@@ -150,7 +151,7 @@
   - On `error` event: show inline error message in chat
   - On `handoff` event: render `HandoffBanner`, disable input
   - Fall back to REST (`sendMessage`) if WebSocket connection fails to open
-- [ ] T024 [P] [US2] Create `frontend/components/chat/HandoffBanner.tsx` — notification banner displayed when conversation enters handoff state, explaining that a human agent has been notified
+- [X] T024 [P] [US2] Create `frontend/components/chat/HandoffBanner.tsx` — notification banner displayed when conversation enters handoff state, explaining that a human agent has been notified
 
 **Checkpoint**: WebSocket streaming delivers tokens in real-time. Quota mid-stream breach sends an error event and stops cleanly. Disconnects persist partial messages. User Stories 1 and 2 are both independently testable.
 
@@ -164,17 +165,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [P] [US3] Implement full `backend/app/services/handoff_service.py` (replacing the Phase 2 stub):
+- [X] T025 [P] [US3] Implement full `backend/app/services/handoff_service.py` (replacing the Phase 2 stub):
   - `is_handoff_trigger(message: str) -> bool` — normalises to lowercase, checks against compiled regex from `config.HANDOFF_KEYWORDS` (split by comma, stripped, regex-escaped, joined with `|`)
   - `async trigger_handoff(tenant_id, conversation_id, assistant_id)`:
     1. Update `conversations.status = 'handoff'` for the given `conversation_id` (with RLS context)
     2. Publish to Redis channel `handoff:{tenant_id}`: `{"conversation_id": "...", "event": "handoff_requested", "assistant_id": "...", "ts": "<ISO-8601>"}`
     3. Return `True`
-- [ ] T026 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/chat.py`:
+- [X] T026 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/chat.py`:
   - Before calling `chat_service.chat(...)`, call `handoff_service.is_handoff_trigger(request.message)`
   - If `True`, call `handoff_service.trigger_handoff(...)` and raise `ConversationInHandoffError` → 409
   - Also check `conversation.status == 'handoff'` at the start of each request and reject with 409 if already in handoff
-- [ ] T027 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/ws_chat.py`:
+- [X] T027 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/ws_chat.py`:
   - In the `"message"` handler, call `handoff_service.is_handoff_trigger(content)` before starting the stream
   - If triggered, call `handoff_service.trigger_handoff(...)`, send `WSHandoffEvent`, and stop further LLM processing for that conversation
   - Check `conversation.status` on each message loop iteration; if `handoff`, send `WSHandoffEvent` and skip LLM
@@ -187,10 +188,10 @@
 
 **Purpose**: Logging, error boundary hardening, fallback edge cases, and developer-experience polish across all stories.
 
-- [ ] T028 [P] Add structured logging in `backend/app/services/chat_service.py`: log `tenant_id`, `conversation_id`, `model_used`, `tokens_used`, and `latency_ms` at `INFO` level for every successful chat turn; log `ERROR` with full exception context on LLM failures
-- [ ] T029 [P] Add structured logging in `backend/app/services/handoff_service.py`: log handoff triggers with `tenant_id`, `conversation_id`, and matched keyword at `INFO` level
-- [ ] T030 [P] Validate that the `openai` SDK `Timeout` configuration is set from `config.LLM_TIMEOUT_SECONDS` in `backend/app/services/llm_service.py` and that `AsyncOpenAI(timeout=...)` is correctly initialised
-- [ ] T031 Run the full quickstart validation from `specs/004-chat-engine/quickstart.md` — REST endpoint, WebSocket streaming, handoff trigger — and confirm all steps pass end-to-end
+- [X] T028 [P] Add structured logging in `backend/app/services/chat_service.py`: log `tenant_id`, `conversation_id`, `model_used`, `tokens_used`, and `latency_ms` at `INFO` level for every successful chat turn; log `ERROR` with full exception context on LLM failures
+- [X] T029 [P] Add structured logging in `backend/app/services/handoff_service.py`: log handoff triggers with `tenant_id`, `conversation_id`, and matched keyword at `INFO` level
+- [X] T030 [P] Validate that the `openai` SDK `Timeout` configuration is set from `config.LLM_TIMEOUT_SECONDS` in `backend/app/services/llm_service.py` and that `AsyncOpenAI(timeout=...)` is correctly initialised
+- [X] T031 Run the full quickstart validation from `specs/004-chat-engine/quickstart.md` — REST endpoint, WebSocket streaming, handoff trigger — and confirm all steps pass end-to-end
 
 ---
 

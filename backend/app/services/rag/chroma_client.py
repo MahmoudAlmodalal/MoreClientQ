@@ -71,5 +71,57 @@ class ChromaClient:
         collection = self.client.get_or_create_collection(name=collection_name)
         collection.delete(where={"document_id": str(document_id)})
 
+    async def retrieve(self, tenant_id: str, query_text: str, top_k: int) -> list:
+        """
+        Retrieve top_k most similar document chunks for a query from the tenant-isolated collection.
+        Returns a list of SourceReference schema objects.
+        """
+        from app.schemas.chat import SourceReference
+        import asyncio
+        from uuid import UUID
+
+        collection_name = f"tenant_{tenant_id}"
+
+        def _query():
+            collection = self.client.get_or_create_collection(name=collection_name)
+            return collection.query(
+                query_texts=[query_text],
+                n_results=top_k
+            )
+
+        results = await asyncio.to_thread(_query)
+
+        source_references = []
+        if not results or "documents" not in results or not results["documents"]:
+            return source_references
+
+        docs = results["documents"][0]
+        metas = results["metadatas"][0] if "metadatas" in results and results["metadatas"] else []
+        distances = results["distances"][0] if "distances" in results and results["distances"] else []
+
+        for i in range(len(docs)):
+            doc_id_str = metas[i].get("document_id") if i < len(metas) and metas[i] else None
+            if not doc_id_str:
+                continue
+            try:
+                document_id = UUID(doc_id_str)
+            except ValueError:
+                continue
+
+            dist = distances[i] if i < len(distances) and distances[i] is not None else 0.0
+            # Convert distance to similarity score
+            score = max(0.0, 1.0 - float(dist))
+
+            source_references.append(
+                SourceReference(
+                    document_id=document_id,
+                    chunk_text=docs[i],
+                    score=score
+                )
+            )
+
+        return source_references
+
 chroma_client = ChromaClient()
+
 

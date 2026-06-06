@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     LLM_TIMEOUT_SECONDS: int = 30
     RAG_TOP_K: int = 5
     HANDOFF_KEYWORDS: str = "speak to human,/human,talk to agent,human please,support"
+    DEFAULT_HOURLY_TOKEN_QUOTA: int = 100000
 
 
     model_config = SettingsConfigDict(

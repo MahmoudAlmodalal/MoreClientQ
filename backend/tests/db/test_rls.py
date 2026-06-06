@@ -158,7 +158,7 @@ async def setup_db():
 async def test_rls_isolation_tenant_a_cannot_see_tenant_b(setup_db):
     """Tenant A session should only see users belonging to Tenant A."""
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_a_id']}'")
         )
@@ -173,7 +173,7 @@ async def test_rls_isolation_tenant_a_cannot_see_tenant_b(setup_db):
 async def test_rls_isolation_tenant_b_cannot_see_tenant_a(setup_db):
     """Tenant B session should only see users belonging to Tenant B."""
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_b_id']}'")
         )
@@ -188,7 +188,7 @@ async def test_rls_isolation_tenant_b_cannot_see_tenant_a(setup_db):
 async def test_rls_no_tenant_context_returns_no_rows(setup_db):
     """Without setting app.current_tenant_id, RLS should filter out all rows."""
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         result = await session.execute(select(User).order_by(User.email))
         users = result.scalars().all()
 
@@ -199,7 +199,7 @@ async def test_rls_no_tenant_context_returns_no_rows(setup_db):
 async def test_rls_bypass_with_set_tenant_id(setup_db):
     """Setting the tenant context allows seeing that tenant's rows."""
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_a_id']}'")
         )
@@ -208,7 +208,7 @@ async def test_rls_bypass_with_set_tenant_id(setup_db):
         tenant_a_emails = [u.email for u in users_a]
 
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_b_id']}'")
         )
@@ -226,7 +226,7 @@ async def test_rls_bypass_with_set_tenant_id(setup_db):
 async def test_rls_insert_with_tenant_context(setup_db):
     """Inserting a user within a tenant context should succeed."""
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_a_id']}'")
         )
@@ -243,7 +243,7 @@ async def test_rls_insert_with_tenant_context(setup_db):
         await session.commit()
 
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_a_id']}'")
         )
@@ -259,7 +259,7 @@ async def test_rls_insert_with_tenant_context(setup_db):
 async def test_rls_update_within_tenant(setup_db):
     """Updating a user row within the correct tenant context should succeed."""
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_a_id']}'")
         )
@@ -271,7 +271,7 @@ async def test_rls_update_within_tenant(setup_db):
         await session.commit()
 
     async with SessionLocal() as session:
-        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', false)"))
+        await session.execute(text("SELECT set_config('app.bypass_rls', 'off', true)"))
         await session.execute(
             text(f"SET LOCAL app.current_tenant_id = '{setup_db['tenant_a_id']}'")
         )
