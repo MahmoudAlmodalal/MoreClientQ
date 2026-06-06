@@ -2,7 +2,7 @@ import pytest
 import jwt
 from httpx import AsyncClient
 from sqlalchemy import text
-from app.db.session import SessionLocal
+from app.db.session import SessionLocal, enable_rls_bypass
 from app.core.config import settings
 from app.models.invitation import Invitation
 from app.models.user import User
@@ -13,6 +13,7 @@ import pytest_asyncio
 
 async def _truncate_all():
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         await session.execute(text("TRUNCATE TABLE users, tenants, invitations CASCADE"))
         await session.commit()
 
@@ -66,6 +67,7 @@ async def test_invite_creation(client: AsyncClient, registered_owner):
 
     # Verify invitation record in database
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         from sqlalchemy import select
         result = await session.execute(
             select(Invitation).where(Invitation.email == "member@acme.com")
@@ -155,6 +157,7 @@ async def test_accept_invitation(client: AsyncClient, registered_owner):
 
     # Verify user was created
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         from sqlalchemy import select
         user_res = await session.execute(
             select(User).where(User.email == "member@acme.com")
@@ -190,6 +193,7 @@ async def test_accept_invitation_expired_token(client: AsyncClient, registered_o
     import uuid
     from datetime import datetime, timedelta, timezone
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         inv = Invitation(
             tenant_id=uuid.UUID(registered_owner["tenant_id"]),
             email="expired@acme.com",
@@ -375,6 +379,7 @@ async def test_tenant_offboarding(client: AsyncClient, registered_owner):
 
     # Verify tenant no longer exists
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         from sqlalchemy import select
         tenant_res = await session.execute(
             select(Tenant).where(Tenant.slug == "acme")

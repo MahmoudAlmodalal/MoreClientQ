@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.db.session import get_db
+from app.db.session import get_db, set_tenant_context
 from app.core.security import require_roles
 from app.models.user import User
 from app.models.tenant import Tenant
@@ -115,6 +115,7 @@ async def update_user_role(
 
     user.role = payload.role
     await db.commit()
+    await set_tenant_context(db, current_tenant_id)
     await db.refresh(user)
 
     return UpdateRoleResponse(

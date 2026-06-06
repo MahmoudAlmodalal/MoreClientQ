@@ -6,8 +6,11 @@ from sqlalchemy import select, or_
 from app.models.invitation import Invitation
 from app.models.user import User
 from app.models.tenant import Tenant
+from app.db.session import set_tenant_context, enable_rls_bypass
 from app.core.security import get_password_hash
 from fastapi import HTTPException, status
+
+
 
 
 def generate_invitation_token() -> str:
@@ -57,6 +60,7 @@ async def create_invitation(
     )
     db.add(invitation)
     await db.commit()
+    await set_tenant_context(db, str(tenant_id))
     await db.refresh(invitation)
     return invitation
 
@@ -67,6 +71,7 @@ async def accept_invitation(
     password: str,
 ) -> tuple[User, str]:
     # Find the invitation by token
+    await enable_rls_bypass(db)
     result = await db.execute(
         select(Invitation).where(Invitation.token == token)
     )
@@ -114,6 +119,7 @@ async def accept_invitation(
     # Mark invitation as accepted
     invitation.accepted_at = datetime.now(timezone.utc)
     await db.commit()
+    await set_tenant_context(db, str(invitation.tenant_id))
     await db.refresh(user)
 
     return user, invitation.email
