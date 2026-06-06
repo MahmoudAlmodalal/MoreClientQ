@@ -22,28 +22,41 @@ _pattern = "|".join(_keywords)
 _handoff_regex = re.compile(_pattern)
 
 
+def get_handoff_match(message: str) -> str | None:
+    """
+    Normalizes the message to lowercase and returns the matched handoff keyword,
+    or None if no match is found.
+    """
+    if not message:
+        return None
+    match = _handoff_regex.search(message.lower())
+    return match.group(0) if match else None
+
+
 def is_handoff_trigger(message: str) -> bool:
     """
     Normalizes the message to lowercase and checks if it contains
     any of the handoff keywords using a compiled regex.
     """
-    if not message:
-        return False
-    return bool(_handoff_regex.search(message.lower()))
+    return get_handoff_match(message) is not None
 
 
 async def trigger_handoff(
-    tenant_id: UUID, conversation_id: UUID, assistant_id: UUID
+    tenant_id: UUID, conversation_id: UUID, assistant_id: UUID, message: str | None = None
 ) -> bool:
     """
     Updates the conversation status to 'handoff' (using RLS context),
     publishes a handoff event to the tenant's Redis channel, and returns True.
     """
+    matched_keyword = None
+    if message:
+        matched_keyword = get_handoff_match(message)
+
     logger.info(
-        "Initiating handoff for tenant %s, conversation %s, assistant %s",
+        "Handoff triggered: tenant_id=%s, conversation_id=%s, matched_keyword=%s",
         tenant_id,
         conversation_id,
-        assistant_id,
+        matched_keyword,
     )
     async with SessionLocal() as db:
         await set_tenant_context(db, str(tenant_id))

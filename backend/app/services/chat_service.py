@@ -127,7 +127,17 @@ async def chat(
 
     # 7. Call llm_service
     start_time = time.perf_counter()
-    response = await llm_service.complete_with_fallback(llm_messages, stream=False)
+    try:
+        response = await llm_service.complete_with_fallback(llm_messages, stream=False)
+    except Exception as e:
+        logger.error(
+            "LLM failure in chat: tenant_id=%s, conversation_id=%s, error=%s",
+            tenant_id,
+            conversation.id if conversation else None,
+            str(e),
+            exc_info=True
+        )
+        raise
     latency_ms = int((time.perf_counter() - start_time) * 1000)
 
     content = response.choices[0].message.content
@@ -165,6 +175,15 @@ async def chat(
 
     # 10. Consume quota
     await quota_service.consume_quota(tenant_id, tokens_used)
+
+    logger.info(
+        "Successful chat turn: tenant_id=%s, conversation_id=%s, model_used=%s, tokens_used=%d, latency_ms=%d",
+        tenant_id,
+        conversation.id,
+        model_used,
+        tokens_used,
+        latency_ms
+    )
 
     # 11. Return ChatResponse
     return ChatResponse(
@@ -328,6 +347,14 @@ async def stream_chat(
         await quota_service.consume_quota(tenant_id, tokens_used)
 
         if not quota_hit:
+            logger.info(
+                "Successful chat turn: tenant_id=%s, conversation_id=%s, model_used=%s, tokens_used=%d, latency_ms=%d",
+                tenant_id,
+                conversation.id,
+                model_used,
+                tokens_used,
+                latency_ms
+            )
             yield {
                 "type": "done",
                 "conversation_id": conversation.id,
@@ -359,4 +386,13 @@ async def stream_chat(
                 await quota_service.consume_quota(tenant_id, tokens_used)
         except Exception:
             pass
+        raise
+    except Exception as e:
+        logger.error(
+            "LLM failure in stream_chat: tenant_id=%s, conversation_id=%s, error=%s",
+            tenant_id,
+            conversation.id if conversation else None,
+            str(e),
+            exc_info=True
+        )
         raise

@@ -174,7 +174,7 @@ async def test_chat_handoff_keyword(client: AsyncClient):
         "message": "speak to human"
     }
 
-    async def mock_trigger_handoff(t_id, c_id, a_id):
+    async def mock_trigger_handoff(t_id, c_id, a_id, *args, **kwargs):
         async with SessionLocal() as db_session:
             await enable_rls_bypass(db_session)
             await db_session.execute(

@@ -156,7 +156,7 @@ async def ws_chat_endpoint(
                             conv_id = conv.id
 
                         await handoff_service.trigger_handoff(
-                            tenant_uuid, conv_id, assistant_uuid
+                            tenant_uuid, conv_id, assistant_uuid, message=content
                         )
                         await websocket.send_text(
                             WSHandoffEvent(

@@ -188,10 +188,10 @@
 
 **Purpose**: Logging, error boundary hardening, fallback edge cases, and developer-experience polish across all stories.
 
-- [ ] T028 [P] Add structured logging in `backend/app/services/chat_service.py`: log `tenant_id`, `conversation_id`, `model_used`, `tokens_used`, and `latency_ms` at `INFO` level for every successful chat turn; log `ERROR` with full exception context on LLM failures
-- [ ] T029 [P] Add structured logging in `backend/app/services/handoff_service.py`: log handoff triggers with `tenant_id`, `conversation_id`, and matched keyword at `INFO` level
-- [ ] T030 [P] Validate that the `openai` SDK `Timeout` configuration is set from `config.LLM_TIMEOUT_SECONDS` in `backend/app/services/llm_service.py` and that `AsyncOpenAI(timeout=...)` is correctly initialised
-- [ ] T031 Run the full quickstart validation from `specs/004-chat-engine/quickstart.md` — REST endpoint, WebSocket streaming, handoff trigger — and confirm all steps pass end-to-end
+- [X] T028 [P] Add structured logging in `backend/app/services/chat_service.py`: log `tenant_id`, `conversation_id`, `model_used`, `tokens_used`, and `latency_ms` at `INFO` level for every successful chat turn; log `ERROR` with full exception context on LLM failures
+- [X] T029 [P] Add structured logging in `backend/app/services/handoff_service.py`: log handoff triggers with `tenant_id`, `conversation_id`, and matched keyword at `INFO` level
+- [X] T030 [P] Validate that the `openai` SDK `Timeout` configuration is set from `config.LLM_TIMEOUT_SECONDS` in `backend/app/services/llm_service.py` and that `AsyncOpenAI(timeout=...)` is correctly initialised
+- [X] T031 Run the full quickstart validation from `specs/004-chat-engine/quickstart.md` — REST endpoint, WebSocket streaming, handoff trigger — and confirm all steps pass end-to-end
 
 ---
 

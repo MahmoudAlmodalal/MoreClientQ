@@ -109,7 +109,7 @@ async def chat_endpoint(
                     )
 
             try:
-                await handoff_service.trigger_handoff(tenant_id, conv_id, payload.assistant_id)
+                await handoff_service.trigger_handoff(tenant_id, conv_id, payload.assistant_id, message=payload.message)
             except Exception:
                 if created_conv:
                     try:
