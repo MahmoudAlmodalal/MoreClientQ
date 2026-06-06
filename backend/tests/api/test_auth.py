@@ -8,6 +8,7 @@ from app.db.session import enable_rls_bypass
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.core.config import settings
+from app.core.redis import redis_cache
 from app.core.security import get_current_user, verify_token
 from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
@@ -182,6 +183,33 @@ async def test_token_refresh_invalid_or_expired(client: AsyncClient, registered_
     assert response.status_code == 401
     assert "invalid" in response.json()["detail"].lower()
 
+@pytest.mark.asyncio
+async def test_token_refresh_rejects_blocklisted_refresh_token(client: AsyncClient, registered_user):
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    })
+    assert login_res.status_code == 200
+    refresh_token = login_res.json()["refresh_token"]
+    refresh_claims = jwt.decode(
+        refresh_token,
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    await redis_cache.set(
+        f"jwt:blocklist:{refresh_claims['jti']}",
+        "revoked",
+        expire=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+    )
+
+    response = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": refresh_token}
+    )
+
+    assert response.status_code == 401
+    assert "revoked" in response.json()["detail"].lower()
+
     # Access token used as refresh token
     login_payload = {
         "email": registered_user["owner_email"],
@@ -242,3 +270,28 @@ async def test_tenant_header_spoofing_rejected(client: AsyncClient, registered_u
     )
     assert response.status_code == 403
     assert "tenant mismatch" in response.json()["detail"].lower()
+
+@pytest.mark.asyncio
+async def test_tenant_rate_limit_rejects_excess_requests(client: AsyncClient, registered_user, monkeypatch):
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    })
+    assert login_res.status_code == 200
+    access_token = login_res.json()["access_token"]
+    claims = jwt.decode(
+        access_token,
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    monkeypatch.setattr(settings, "RATE_LIMIT_REQUESTS_PER_MINUTE", 1)
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "X-Tenant-ID": claims["tenant_id"],
+    }
+    first = await client.get("/api/v1/auth/me", headers=headers)
+    second = await client.get("/api/v1/auth/me", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 429

@@ -19,6 +19,8 @@ from app.core.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
+    is_tenant_revoked,
+    is_token_revoked,
     verify_token
 )
 from app.schemas.team import AcceptInviteRequest, AcceptInviteResponse, AcceptInviteData
@@ -124,6 +126,11 @@ async def refresh(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token"
+        )
+    if await is_token_revoked(token_claims) or await is_tenant_revoked(token_claims):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has been revoked"
         )
 
     user_id = token_claims.get("sub")

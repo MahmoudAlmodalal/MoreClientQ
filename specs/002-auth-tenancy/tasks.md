@@ -154,6 +154,22 @@
 
 ---
 
+## Phase 10: User Story 7 - Frontend Login & Register Pages (Priority: P1)
+
+**Goal**: Implement the frontend user interface for tenant registration, owner registration, secure login, and invitation acceptance.
+
+**Independent Test**: Load register page, register a tenant, log in, and verify token storage and redirect behavior.
+
+### Implementation for User Story 7
+- [X] T038 Create custom auth and API client utility methods in `frontend/lib/api.ts`
+- [X] T039 Create shared auth layout with premium styling in `frontend/app/(auth)/layout.tsx`
+- [X] T040 Create responsive credentials login page in `frontend/app/(auth)/login/page.tsx`
+- [X] T041 Create tenant registration & invitation accept page in `frontend/app/(auth)/register/page.tsx`
+
+**Checkpoint**: Login and Register pages are fully implemented and integrated.
+
+---
+
 ## Phase 9: Polish & Cross-Cutting Concerns
 
 **Purpose**: General optimizations, documentation, and final validations
@@ -161,6 +177,7 @@
 - [X] T035 Implement user logout invalidation via Redis token blocklist in `backend/app/api/v1/endpoints/auth.py`
 - [X] T036 [P] Update developer documentations with endpoint details and setup requirements in `README.md`
 - [X] T037 Execute quickstart verification scripts to validate all workflows in `specs/002-auth-tenancy/quickstart.md`
+
 
 ---
 

@@ -1,7 +1,7 @@
 import os
 import time
 import logging
-from fastapi import Request
+from fastapi import HTTPException, Request, status
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import Column, ForeignKey
@@ -48,11 +48,18 @@ async def get_db(request: Request = None):
             try:
                 await set_tenant_context(session, str(tenant_id))
             except Exception as e:
-                logger.warning(f"Failed to set app.current_tenant_id: {e}")
+                logger.exception(f"Failed to set app.current_tenant_id: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to bind tenant context",
+                )
         yield session
 
 async def set_tenant_context(session: AsyncSession, tenant_id: str) -> None:
     """Bind the current transaction to a tenant for PostgreSQL RLS policies."""
+    await session.execute(
+        text("SELECT set_config('app.bypass_rls', 'off', true)")
+    )
     await session.execute(
         text("SELECT set_config('app.current_tenant_id', :tenant_id, true)"),
         {"tenant_id": tenant_id},

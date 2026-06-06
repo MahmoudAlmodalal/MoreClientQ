@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     INTERNAL_SECRET: str = "internal-service-secret"
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 100
 
     # CORS Settings
     ALLOWED_ORIGINS: list[str] = [

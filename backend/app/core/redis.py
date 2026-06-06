@@ -50,6 +50,16 @@ class RedisCache:
             logger.error(f"Redis exists error for key {key}: {e}")
             return False
 
+    async def incr(self, key: str, expire: int | None = None) -> int | None:
+        try:
+            value = await self.client.incr(key)
+            if value == 1 and expire is not None:
+                await self.client.expire(key, expire)
+            return int(value)
+        except Exception as e:
+            logger.error(f"Redis incr error for key {key}: {e}")
+            return None
+
     async def ping(self) -> tuple[bool, float, str | None]:
         start_time = time.perf_counter()
         try:

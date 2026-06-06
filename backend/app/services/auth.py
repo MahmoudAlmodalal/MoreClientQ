@@ -44,7 +44,7 @@ async def create_invitation(
     if existing_invitation.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="An active invitation for this email already exists"
+            detail="User is already invited"
         )
 
     token = generate_invitation_token()

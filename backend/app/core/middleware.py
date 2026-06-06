@@ -1,8 +1,11 @@
 import logging
+import time
 import uuid
 from starlette.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from app.core.config import settings
+from app.core.redis import redis_cache
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +20,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/api/v1/auth/register",
         "/api/v1/auth/login",
         "/api/v1/auth/refresh",
+        "/api/v1/auth/invite/accept",
         "/api/v1/tenants/resolve/",
     )
 
@@ -40,6 +44,24 @@ class TenantMiddleware(BaseHTTPMiddleware):
                     return JSONResponse(
                         status_code=400,
                         content={"detail": "Invalid tenant context"},
+                    )
+            else:
+                if await redis_cache.exists(f"tenant:revoked:{tenant_id}"):
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "Tenant has been offboarded or revoked"},
+                    )
+
+                window = int(time.time() // 60)
+                rate_key = f"rate_limit:{tenant_id}:{window}"
+                request_count = await redis_cache.incr(rate_key, expire=65)
+                if (
+                    request_count is not None
+                    and request_count > settings.RATE_LIMIT_REQUESTS_PER_MINUTE
+                ):
+                    return JSONResponse(
+                        status_code=429,
+                        content={"detail": "Rate limit exceeded"},
                     )
         elif self._requires_tenant_context(request):
             return JSONResponse(

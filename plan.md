@@ -1173,12 +1173,12 @@ jobs:
 - [x] `.env` configuration aligned across services
 
 ### Phase 1 — Auth & Tenancy (Week 2)
-- [ ] Tenant registration + slug uniqueness enforcement
-- [ ] JWT auth (login, refresh, revoke)
-- [ ] Next.js Middleware subdomain resolution
-- [ ] FastAPI TenantMiddleware + RLS activation
-- [ ] RBAC role checks on all protected routes
-- [ ] Login + Register pages (frontend)
+- [x] Tenant registration + slug uniqueness enforcement
+- [x] JWT auth (login, refresh, revoke)
+- [x] Next.js Middleware subdomain resolution
+- [x] FastAPI TenantMiddleware + RLS activation
+- [x] RBAC role checks on all protected routes
+- [x] Login + Register pages (frontend)
 
 ### Phase 2 — Assistant & Knowledge Base (Weeks 3–4)
 - [ ] Assistant CRUD API + frontend pages

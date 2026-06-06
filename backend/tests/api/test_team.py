@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.models.invitation import Invitation
 from app.models.user import User
 from app.models.tenant import Tenant
+from app.core.redis import redis_cache
 
 import pytest_asyncio
 
@@ -391,3 +392,13 @@ async def test_tenant_offboarding(client: AsyncClient, registered_owner):
             select(Invitation).where(Invitation.email == "member@acme.com")
         )
         assert inv_res.scalar_one_or_none() is None
+
+    token_after_offboard = await client.get(
+        "/api/v1/auth/me",
+        headers={
+            "Authorization": f"Bearer {registered_owner['access_token']}",
+            "X-Tenant-ID": registered_owner["tenant_id"],
+        }
+    )
+    assert token_after_offboard.status_code == 403
+    assert await redis_cache.exists(f"tenant:revoked:{registered_owner['tenant_id']}")

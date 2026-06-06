@@ -167,6 +167,11 @@ async def offboard_tenant(
     # Invalidate Redis slug cache
     cache_key = _slug_cache_key(tenant.slug)
     await redis_cache.delete(cache_key)
+    await redis_cache.set(
+        f"tenant:revoked:{tenant_id}",
+        "revoked",
+        expire=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+    )
 
     # Cascade delete tenant (all related records deleted via FK ON DELETE CASCADE)
     await db.delete(tenant)

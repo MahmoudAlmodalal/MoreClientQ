@@ -88,6 +88,19 @@ async def is_token_revoked(payload: dict[str, Any]) -> bool:
     except asyncio.TimeoutError:
         return False
 
+async def is_tenant_revoked(payload: dict[str, Any]) -> bool:
+    """Check whether every token for a tenant has been revoked."""
+    tenant_id = payload.get("tenant_id")
+    if not tenant_id:
+        return True
+    try:
+        return await asyncio.wait_for(
+            redis_cache.exists(f"tenant:revoked:{tenant_id}"),
+            timeout=0.25,
+        )
+    except asyncio.TimeoutError:
+        return False
+
 async def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme)
@@ -118,6 +131,11 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has been revoked",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+    if await is_tenant_revoked(payload):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant has been revoked",
         )
 
     # Cross-validate X-Tenant-ID header if present in request (or request.state.tenant_id if set by middleware)
