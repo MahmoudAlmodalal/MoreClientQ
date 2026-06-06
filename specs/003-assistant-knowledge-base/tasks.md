@@ -103,7 +103,7 @@
 - [X] T024 [US3] Implement list documents endpoint in `backend/app/api/v1/endpoints/documents.py`
 - [X] T025 [US3] Implement delete document endpoint (removing files from MinIO, deleting vectors from ChromaDB, updating DB, and cancelling in-flight ingestion when processing) in `backend/app/api/v1/endpoints/documents.py`
 - [X] T026 [P] [US3] Create document list component in `frontend/components/knowledge-base/document-list.tsx`
-- [X] T027 [US3] Integrate document listing and deletion in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
+- [X] T027 [US3] Integrate document listing and deletion in `frontend/app/dashboard/assistants/[id]/knowledge-base/page.tsx`
 
 **Checkpoint**: Document management and listing is fully operational.
 
@@ -129,12 +129,12 @@
 
 **Purpose**: Improvements that affect multiple user stories.
 
-- [ ] T031 [P] Verify RLS database isolation and tenant restrictions for all new endpoints using testing scripts
-- [ ] T032 [P] Verify existing Redis token-bucket rate limits apply to assistant and document endpoints at Nginx and FastAPI middleware layers, including HTTP 429 responses
-- [ ] T033 [P] Add concurrency tests or integration checks proving assistant/document quota enforcement remains atomic under simultaneous create requests
-- [ ] T034 [P] Validate performance thresholds for 10 MB ingestion within 3 minutes, status freshness within 5 seconds, document index removal within 30 seconds, and embed code retrieval within 1 second
-- [ ] T035 Run quickstart.md validation to ensure migrations and service setups run smoothly
-- [ ] T036 [P] Perform manual user journey checks on local environment
+- [X] T031 [P] Verify RLS database isolation and tenant restrictions for all new endpoints using testing scripts
+- [X] T032 [P] Verify existing Redis token-bucket rate limits apply to assistant and document endpoints at Nginx and FastAPI middleware layers, including HTTP 429 responses
+- [X] T033 [P] Add concurrency tests or integration checks proving assistant/document quota enforcement remains atomic under simultaneous create requests
+- [X] T034 [P] Validate performance thresholds for 10 MB ingestion within 3 minutes, status freshness within 5 seconds, document index removal within 30 seconds, and embed code retrieval within 1 second
+- [X] T035 Run quickstart.md validation to ensure migrations and service setups run smoothly
+- [X] T036 [P] Perform manual user journey checks on local environment
 
 ---
 

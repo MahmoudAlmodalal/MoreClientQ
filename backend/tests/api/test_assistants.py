@@ -397,3 +397,36 @@ async def test_get_widget_embed_code(client: AsyncClient, registered_owner):
     assert "snippet" in data
     assert f'data-assistant="{assistant_id}"' in data["snippet"]
     assert "widget.js" in data["snippet"]
+
+@pytest.mark.asyncio
+async def test_create_assistant_concurrency(client: AsyncClient, registered_owner):
+    # Plan is "starter", which has max_assistants=1.
+    # Send 3 requests concurrently. Only 1 should succeed with 201, other 2 should fail with 400.
+    payload = {
+        "name": "Concurrent Bot",
+        "system_prompt": "Prompt",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "max_tokens": 1024
+    }
+
+    import asyncio
+
+    async def make_request(i):
+        return await client.post(
+            "/api/v1/assistants",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            },
+            json={**payload, "name": f"Concurrent Bot {i}"}
+        )
+
+    responses = await asyncio.gather(*(make_request(i) for i in range(3)))
+
+    successes = [r for r in responses if r.status_code == 201]
+    quota_exceeded = [r for r in responses if r.status_code == 400 and "exceeded" in r.json()["detail"]]
+
+    assert len(successes) == 1
+    assert len(quota_exceeded) == 2
+

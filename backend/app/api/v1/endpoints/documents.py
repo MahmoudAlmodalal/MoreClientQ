@@ -46,7 +46,10 @@ async def _verify_assistant(db: AsyncSession, tenant_id: uuid.UUID, assistant_id
     return assistant
 
 async def _check_document_quota(db: AsyncSession, tenant_id: uuid.UUID) -> None:
-    tenant = await db.get(Tenant, tenant_id)
+    tenant_res = await db.execute(
+        select(Tenant).where(Tenant.id == tenant_id).with_for_update()
+    )
+    tenant = tenant_res.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

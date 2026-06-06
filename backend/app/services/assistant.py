@@ -30,8 +30,11 @@ async def create_assistant(
     """
     Create a new assistant after checking the tenant's plan quota.
     """
-    # 1. Fetch tenant to determine their plan
-    tenant = await db.get(Tenant, tenant_id)
+    # 1. Fetch tenant to determine their plan (using row locking to ensure atomicity under concurrency)
+    tenant_res = await db.execute(
+        select(Tenant).where(Tenant.id == tenant_id).with_for_update()
+    )
+    tenant = tenant_res.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
