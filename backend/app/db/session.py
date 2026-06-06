@@ -6,13 +6,10 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import text
 
-# PostgreSQL async database URL
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+asyncpg://user:pass@postgres:5432/platform"
-)
+from app.core.config import settings
 
 # Create the async engine
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(settings.DATABASE_URL, echo=True)
 
 # Create the async session factory
 SessionLocal = async_sessionmaker(

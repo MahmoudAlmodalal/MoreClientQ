@@ -1,3 +1,8 @@
+import os
+# Hot-fix for docker daemon zombie redis container port conflict
+if os.getenv("REDIS_URL") == "redis://redis:6379":
+    os.environ["REDIS_URL"] = "redis://redis-service:6379"
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -5,7 +10,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://user:pass@postgres:5432/platform"
 
     # Redis Settings
-    REDIS_URL: str = "redis://redis:6379"
+    REDIS_URL: str = "redis://redis-service:6379"
 
     # ChromaDB Settings
     CHROMADB_HOST: str = "chromadb"
@@ -19,6 +24,8 @@ class Settings(BaseSettings):
     # Security Settings
     JWT_SECRET_KEY: str = "your_jwt_secret_key_here"
     JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     INTERNAL_SECRET: str = "internal-service-secret"
 
     model_config = SettingsConfigDict(

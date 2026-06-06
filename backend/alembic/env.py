@@ -20,11 +20,11 @@ if config.config_file_name is not None:
 from app.db.base import Base
 target_metadata = Base.metadata
 
-# Override the database URL dynamically using the environment variable
+from app.core.config import settings
+
+# Override the database URL dynamically using the settings
 def get_url():
-    url = os.getenv("DATABASE_URL")
-    if not url:
-        url = "postgresql+asyncpg://user:pass@postgres:5432/platform"
+    url = settings.DATABASE_URL
     # Ensure it uses the asyncpg driver
     if url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)

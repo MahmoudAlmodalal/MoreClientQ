@@ -1,7 +1,8 @@
 from celery import Celery
+from app.core.config import settings
 
 celery_app = Celery(
     "platform_tasks",
-    broker="redis://redis:6379/0",
-    backend="redis://redis:6379/0"
+    broker=f"{settings.REDIS_URL}/0",
+    backend=f"{settings.REDIS_URL}/0"
 )
