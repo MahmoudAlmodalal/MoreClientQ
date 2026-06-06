@@ -105,10 +105,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Create Pricing table section component in `frontend/components/landing/Pricing.tsx`
-- [ ] T025 [P] [US3] Create Testimonials section component in `frontend/components/landing/Testimonials.tsx`
-- [ ] T026 [US3] Integrate Pricing and Testimonials components into `frontend/app/(marketing)/page.tsx`
-- [ ] T027 [US3] Write Jest component tests for pricing CTAs in `frontend/components/landing/__tests__/Pricing.test.tsx`
+- [X] T024 [P] [US3] Create Pricing table section component in `frontend/components/landing/Pricing.tsx`
+- [X] T025 [P] [US3] Create Testimonials section component in `frontend/components/landing/Testimonials.tsx`
+- [X] T026 [US3] Integrate Pricing and Testimonials components into `frontend/app/(marketing)/page.tsx`
+- [X] T027 [US3] Write Jest component tests for pricing CTAs in `frontend/components/landing/__tests__/Pricing.test.tsx`
 
 **Checkpoint**: User Stories 1, 2, and 3 should now be functional and testable together
 

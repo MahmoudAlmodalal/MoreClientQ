@@ -4,6 +4,8 @@ import LogoStrip from '../../components/landing/LogoStrip';
 import Features from '../../components/landing/Features';
 import HowItWorks from '../../components/landing/HowItWorks';
 import LiveDemo from '../../components/landing/LiveDemo';
+import Pricing from '../../components/landing/Pricing';
+import Testimonials from '../../components/landing/Testimonials';
 import FooterCta from '../../components/landing/FooterCta';
 
 export default function MarketingPage() {
@@ -14,6 +16,8 @@ export default function MarketingPage() {
       <Features />
       <HowItWorks />
       <LiveDemo />
+      <Pricing />
+      <Testimonials />
       <FooterCta />
     </main>
   );
