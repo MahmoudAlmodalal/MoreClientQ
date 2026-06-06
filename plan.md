@@ -1165,20 +1165,20 @@ jobs:
 ## 15. Implementation Phases & Timeline
 
 ### Phase 0 — Foundation (Week 1)
-- [ ] Git monorepo initialized, branch strategy defined
-- [ ] Docker Compose dev environment working (all services up)
-- [ ] PostgreSQL schema + Alembic migrations initialized
-- [ ] FastAPI app skeleton with health check
-- [ ] Next.js 14 project with shadcn/ui installed
-- [ ] `.env` configuration aligned across services
+- [x] Git monorepo initialized, branch strategy defined
+- [x] Docker Compose dev environment working (all services up)
+- [x] PostgreSQL schema + Alembic migrations initialized
+- [x] FastAPI app skeleton with health check
+- [x] Next.js 14 project with shadcn/ui installed
+- [x] `.env` configuration aligned across services
 
 ### Phase 1 — Auth & Tenancy (Week 2)
-- [ ] Tenant registration + slug uniqueness enforcement
-- [ ] JWT auth (login, refresh, revoke)
-- [ ] Next.js Middleware subdomain resolution
-- [ ] FastAPI TenantMiddleware + RLS activation
-- [ ] RBAC role checks on all protected routes
-- [ ] Login + Register pages (frontend)
+- [x] Tenant registration + slug uniqueness enforcement
+- [x] JWT auth (login, refresh, revoke)
+- [x] Next.js Middleware subdomain resolution
+- [x] FastAPI TenantMiddleware + RLS activation
+- [x] RBAC role checks on all protected routes
+- [x] Login + Register pages (frontend)
 
 ### Phase 2 — Assistant & Knowledge Base (Weeks 3–4)
 - [ ] Assistant CRUD API + frontend pages

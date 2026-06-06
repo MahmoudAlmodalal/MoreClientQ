@@ -1,0 +1,297 @@
+import pytest
+import uuid
+import jwt
+from httpx import AsyncClient
+from sqlalchemy import text, update
+from app.db.session import SessionLocal
+from app.db.session import enable_rls_bypass
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.core.config import settings
+from app.core.redis import redis_cache
+from app.core.security import get_current_user, verify_token
+from fastapi import Request, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials
+
+import pytest_asyncio
+
+async def _truncate_all():
+    """Truncate all tenant-related tables bypassing RLS."""
+    async with SessionLocal() as session:
+        await session.execute(text("TRUNCATE TABLE users, tenants CASCADE"))
+        await session.commit()
+
+@pytest_asyncio.fixture(autouse=True)
+async def cleanup_db():
+    await _truncate_all()
+    yield
+    await _truncate_all()
+
+@pytest_asyncio.fixture
+async def registered_user(client: AsyncClient):
+
+    payload = {
+        "tenant_slug": "acme",
+        "tenant_name": "Acme Corp",
+        "owner_email": "owner@acme.com",
+        "owner_password": "securepassword123",
+        "owner_full_name": "Acme Owner"
+    }
+    response = await client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 201
+    return payload
+
+@pytest.mark.asyncio
+async def test_login_success(client: AsyncClient, registered_user):
+    payload = {
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    }
+    response = await client.post("/api/v1/auth/login", json=payload)
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["token_type"] == "bearer"
+    assert data["expires_in"] == settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
+    # Decode access token and verify claims
+    claims = jwt.decode(
+        data["access_token"],
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    assert "sub" in claims
+    assert "tenant_id" in claims
+    assert claims["tenant_slug"] == "acme"
+    assert claims["role"] == "owner"
+    assert claims["type"] == "access"
+
+    # Decode refresh token and verify claims
+    refresh_claims = jwt.decode(
+        data["refresh_token"],
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    assert refresh_claims["sub"] == claims["sub"]
+    assert refresh_claims["tenant_id"] == claims["tenant_id"]
+    assert refresh_claims["tenant_slug"] == "acme"
+    assert refresh_claims["role"] == "owner"
+    assert refresh_claims["type"] == "refresh"
+
+@pytest.mark.asyncio
+async def test_login_invalid_credentials(client: AsyncClient, registered_user):
+    # Wrong password
+    payload = {
+        "email": registered_user["owner_email"],
+        "password": "wrongpassword"
+    }
+    response = await client.post("/api/v1/auth/login", json=payload)
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid email or password"
+
+    # Wrong email
+    payload = {
+        "email": "wrong@acme.com",
+        "password": registered_user["owner_password"]
+    }
+    response = await client.post("/api/v1/auth/login", json=payload)
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid email or password"
+
+@pytest.mark.asyncio
+async def test_login_deactivated_account(client: AsyncClient, registered_user):
+    # Deactivate the user in DB
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        await session.execute(
+            update(User)
+            .where(User.email == registered_user["owner_email"])
+            .values(is_active=False)
+        )
+        await session.commit()
+
+    payload = {
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    }
+    response = await client.post("/api/v1/auth/login", json=payload)
+    assert response.status_code == 403
+    assert "deactivated" in response.json()["detail"].lower()
+
+@pytest.mark.asyncio
+async def test_login_deactivated_tenant(client: AsyncClient, registered_user):
+    # Deactivate the tenant in DB
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        await session.execute(
+            update(Tenant)
+            .where(Tenant.slug == "acme")
+            .values(is_active=False)
+        )
+        await session.commit()
+
+    payload = {
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    }
+    response = await client.post("/api/v1/auth/login", json=payload)
+    assert response.status_code == 403
+    assert "tenant deactivated" in response.json()["detail"].lower()
+
+@pytest.mark.asyncio
+async def test_token_refresh_success(client: AsyncClient, registered_user):
+    # First login to get refresh token
+    login_payload = {
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    }
+    login_res = await client.post("/api/v1/auth/login", json=login_payload)
+    assert login_res.status_code == 200
+    refresh_token = login_res.json()["refresh_token"]
+
+    # Call refresh endpoint
+    refresh_payload = {
+        "refresh_token": refresh_token
+    }
+    response = await client.post("/api/v1/auth/refresh", json=refresh_payload)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+    assert data["expires_in"] == settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
+    # Verify new access token is valid
+    claims = jwt.decode(
+        data["access_token"],
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    assert claims["tenant_slug"] == "acme"
+    assert claims["role"] == "owner"
+    assert claims["type"] == "access"
+
+@pytest.mark.asyncio
+async def test_token_refresh_invalid_or_expired(client: AsyncClient, registered_user):
+    # Invalid token string
+    refresh_payload = {
+        "refresh_token": "not-a-valid-jwt-token"
+    }
+    response = await client.post("/api/v1/auth/refresh", json=refresh_payload)
+    assert response.status_code == 401
+    assert "invalid" in response.json()["detail"].lower()
+
+@pytest.mark.asyncio
+async def test_token_refresh_rejects_blocklisted_refresh_token(client: AsyncClient, registered_user):
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    })
+    assert login_res.status_code == 200
+    refresh_token = login_res.json()["refresh_token"]
+    refresh_claims = jwt.decode(
+        refresh_token,
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    await redis_cache.set(
+        f"jwt:blocklist:{refresh_claims['jti']}",
+        "revoked",
+        expire=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+    )
+
+    response = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": refresh_token}
+    )
+
+    assert response.status_code == 401
+    assert "revoked" in response.json()["detail"].lower()
+
+    # Access token used as refresh token
+    login_payload = {
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    }
+    login_res = await client.post("/api/v1/auth/login", json=login_payload)
+    assert login_res.status_code == 200
+    access_token = login_res.json()["access_token"]
+
+    refresh_payload = {
+        "refresh_token": access_token
+    }
+    response = await client.post("/api/v1/auth/refresh", json=refresh_payload)
+    assert response.status_code == 401
+    assert "invalid" in response.json()["detail"].lower()
+
+@pytest.mark.asyncio
+async def test_dependency_get_current_user():
+    # Mock FastAPI request and credentials
+    from unittest.mock import MagicMock
+    request = MagicMock(spec=Request)
+    request.headers = {}
+    request.state = MagicMock()
+    request.state.tenant_id = None
+
+    # Test not authenticated (no credentials)
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_user(request, credentials=None)
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Not authenticated"
+
+    # Test invalid token
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="invalid-token")
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_user(request, credentials=credentials)
+    assert exc_info.value.status_code == 401
+    assert "invalid" in exc_info.value.detail.lower()
+
+@pytest.mark.asyncio
+async def test_tenant_header_spoofing_rejected(client: AsyncClient, registered_user):
+    """Verify that a mismatched X-Tenant-ID header is rejected even with a valid JWT."""
+    # Login to get a valid access token
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    })
+    assert login_res.status_code == 200
+    access_token = login_res.json()["access_token"]
+
+    # Send a request with a spoofed X-Tenant-ID that doesn't match the token's tenant_id
+    spoofed_tenant_id = "00000000-0000-0000-0000-000000000000"
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "X-Tenant-ID": spoofed_tenant_id,
+        }
+    )
+    assert response.status_code == 403
+    assert "tenant mismatch" in response.json()["detail"].lower()
+
+@pytest.mark.asyncio
+async def test_tenant_rate_limit_rejects_excess_requests(client: AsyncClient, registered_user, monkeypatch):
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": registered_user["owner_email"],
+        "password": registered_user["owner_password"]
+    })
+    assert login_res.status_code == 200
+    access_token = login_res.json()["access_token"]
+    claims = jwt.decode(
+        access_token,
+        settings.JWT_SECRET_KEY,
+        algorithms=[settings.JWT_ALGORITHM]
+    )
+    monkeypatch.setattr(settings, "RATE_LIMIT_REQUESTS_PER_MINUTE", 1)
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "X-Tenant-ID": claims["tenant_id"],
+    }
+    first = await client.get("/api/v1/auth/me", headers=headers)
+    second = await client.get("/api/v1/auth/me", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 429
