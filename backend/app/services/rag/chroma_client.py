@@ -30,6 +30,38 @@ class ChromaClient:
             latency = (time.perf_counter() - start_time) * 1000
             return False, round(latency, 2), str(e)
 
+    def upsert_document_chunks(self, tenant_id: str, document_id: str, chunks: list, filename: str, file_type: str) -> int:
+        """
+        Upsert document chunks into tenant-isolated ChromaDB collection.
+        Returns the number of chunks upserted.
+        """
+        collection_name = f"tenant_{tenant_id}"
+        collection = self.client.get_or_create_collection(name=collection_name)
+        
+        ids = []
+        documents = []
+        metadatas = []
+        
+        for idx, chunk in enumerate(chunks):
+            chunk_id = f"{document_id}_{idx}"
+            ids.append(chunk_id)
+            documents.append(chunk.text)
+            metadatas.append({
+                "tenant_id": str(tenant_id),
+                "document_id": str(document_id),
+                "filename": filename,
+                "file_type": file_type,
+                "chunk_index": idx
+            })
+            
+        if ids:
+            collection.upsert(
+                ids=ids,
+                documents=documents,
+                metadatas=metadatas
+            )
+        return len(ids)
+
     def delete_document_vectors(self, tenant_id: str, document_id: str) -> None:
         """
         Delete all vector chunks belonging to the specified document.

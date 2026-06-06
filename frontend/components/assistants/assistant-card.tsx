@@ -11,6 +11,7 @@ interface AssistantCardProps {
   onEdit: (assistant: AssistantData) => void;
   onDelete: (id: string) => Promise<void>;
   onShowEmbed: (assistant: AssistantData) => void;
+  canManage: boolean;
 }
 
 export default function AssistantCard({
@@ -18,6 +19,7 @@ export default function AssistantCard({
   onEdit,
   onDelete,
   onShowEmbed,
+  canManage,
 }: AssistantCardProps) {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
@@ -94,16 +96,18 @@ export default function AssistantCard({
       {/* Actions */}
       <div className="mt-5 pt-4 border-t border-slate-850 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <Link href={`/dashboard/assistants/${assistant.id}/knowledge-base`}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white px-3 flex items-center gap-1.5"
-            >
-              <Database className="h-3.5 w-3.5" />
-              <span>KB</span>
-            </Button>
-          </Link>
+          {canManage && (
+            <Link href={`/dashboard/assistants/${assistant.id}/knowledge-base`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white px-3 flex items-center gap-1.5"
+              >
+                <Database className="h-3.5 w-3.5" />
+                <span>KB</span>
+              </Button>
+            </Link>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -115,26 +119,28 @@ export default function AssistantCard({
           </Button>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(assistant)}
-            className="border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white px-2.5"
-            disabled={isDeleting}
-          >
-            <Settings className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDelete}
-            className="border-slate-800 text-red-400 hover:bg-red-500/10 hover:text-red-400 px-2.5 hover:border-red-500/20"
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(assistant)}
+              className="border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white px-2.5"
+              disabled={isDeleting}
+            >
+              <Settings className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDelete}
+              className="border-slate-800 text-red-400 hover:bg-red-500/10 hover:text-red-400 px-2.5 hover:border-red-500/20"
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
       </div>
 
     </div>

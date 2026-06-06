@@ -72,17 +72,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T015 [P] [US2] Create API tests for document upload, URL ingestion, status polling, duplicate filename rejection, quota rejection, file validation, and structured ingestion failure logging in `backend/tests/api/test_documents.py`
+- [X] T015 [P] [US2] Create API tests for document upload, URL ingestion, status polling, duplicate filename rejection, quota rejection, file validation, and structured ingestion failure logging in `backend/tests/api/test_documents.py`
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implement background Celery task for document ingestion (text extraction, chunking, embedding, vector database upsert) in `backend/app/tasks/ingest.py`
-- [ ] T017 [US2] Implement synchronous pre-flight URL validation in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T018 [US2] Implement document creation and file upload logic to MinIO/DB, checking duplicate filename and quota restrictions, in `backend/app/api/v1/endpoints/documents.py` and register in `backend/app/api/v1/router.py`
-- [ ] T019 [US2] Implement polling endpoint for document status in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T020 [US2] Implement structured logging of ingestion failures in `backend/app/tasks/ingest.py`
-- [ ] T021 [P] [US2] Create file upload, URL ingest, and status polling components in `frontend/components/knowledge-base/`
-- [ ] T022 [US2] Create knowledge base page view layout in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
+- [X] T016 [US2] Implement background Celery task for document ingestion (text extraction, chunking, embedding, vector database upsert) in `backend/app/tasks/ingest.py`
+- [X] T017 [US2] Implement synchronous pre-flight URL validation in `backend/app/api/v1/endpoints/documents.py`
+- [X] T018 [US2] Implement document creation and file upload logic to MinIO/DB, checking duplicate filename and quota restrictions, in `backend/app/api/v1/endpoints/documents.py` and register in `backend/app/api/v1/router.py`
+- [X] T019 [US2] Implement polling endpoint for document status in `backend/app/api/v1/endpoints/documents.py`
+- [X] T020 [US2] Implement structured logging of ingestion failures in `backend/app/tasks/ingest.py`
+- [X] T021 [P] [US2] Create file upload, URL ingest, and status polling components in `frontend/components/knowledge-base/`
+- [X] T022 [US2] Create knowledge base page view layout in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
 
 **Checkpoint**: At this point, User Stories 1 and 2 are fully functional and integrated.
 

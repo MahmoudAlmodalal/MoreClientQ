@@ -120,6 +120,25 @@ async def test_create_assistant_name_validation(client: AsyncClient, registered_
     assert response.status_code == 422
 
 @pytest.mark.asyncio
+async def test_create_assistant_whitespace_name_validation(client: AsyncClient, registered_owner):
+    payload = {
+        "name": "   ",
+        "system_prompt": "Prompt",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "max_tokens": 1024
+    }
+    response = await client.post(
+        "/api/v1/assistants",
+        headers={
+            "Authorization": f"Bearer {registered_owner['access_token']}",
+            "X-Tenant-ID": registered_owner["tenant_id"]
+        },
+        json=payload
+    )
+    assert response.status_code == 422
+
+@pytest.mark.asyncio
 async def test_create_assistant_quota_limit(client: AsyncClient, registered_owner):
     # Plan is "starter", which has max_assistants=1.
     # First assistant creation should succeed.
@@ -304,6 +323,52 @@ async def test_delete_assistant_cascade_cleanup(client: AsyncClient, registered_
         
         doc_check = await session.get(Document, doc_id)
         assert doc_check is None
+
+@pytest.mark.asyncio
+async def test_delete_assistant_cleanup_failure_aborts_delete(client: AsyncClient, registered_owner):
+    tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        assistant = Assistant(
+            tenant_id=tenant_uuid,
+            name="Cleanup Fail Bot",
+            system_prompt="system",
+            is_active=True
+        )
+        session.add(assistant)
+        await session.flush()
+
+        doc = Document(
+            tenant_id=tenant_uuid,
+            assistant_id=assistant.id,
+            filename="cleanup-fail.pdf",
+            storage_key="cleanup-fail-key",
+            file_type="pdf",
+            status="ready"
+        )
+        session.add(doc)
+        await session.commit()
+        assistant_id = assistant.id
+
+    with patch("app.services.assistant.storage_service.delete_file", side_effect=RuntimeError("minio down")) as mock_delete_file, \
+         patch("app.services.assistant.chroma_client.delete_document_vectors") as mock_delete_vectors:
+        response = await client.delete(
+            f"/api/v1/assistants/{assistant_id}",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            }
+        )
+        assert response.status_code == 500
+        assert "Assistant deletion aborted because associated storage cleanup failed." in response.json()["detail"]
+        mock_delete_file.assert_called_once_with("cleanup-fail-key")
+        mock_delete_vectors.assert_called_once()
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        ast_check = await session.get(Assistant, assistant_id)
+        assert ast_check is not None
 
 @pytest.mark.asyncio
 async def test_get_widget_embed_code(client: AsyncClient, registered_owner):

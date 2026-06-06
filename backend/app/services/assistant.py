@@ -140,14 +140,17 @@ async def delete_assistant(
     )
     documents = docs_res.scalars().all()
 
+    cleanup_errors: list[str] = []
+
     # 4. Delete MinIO objects and ChromaDB vectors for each document
     for doc in documents:
         # Delete file from MinIO (run in threadpool since storage_service is synchronous)
         try:
             await asyncio.to_thread(storage_service.delete_file, doc.storage_key)
-        except Exception:
-            # Continue even if storage delete fails to avoid getting stuck
-            pass
+        except Exception as exc:
+            cleanup_errors.append(
+                f"MinIO cleanup failed for document {doc.id}: {exc}"
+            )
 
         # Delete vectors from ChromaDB (run in threadpool since chromadb client is synchronous)
         try:
@@ -156,9 +159,18 @@ async def delete_assistant(
                 str(tenant_id),
                 str(doc.id)
             )
-        except Exception:
-            # Continue even if vector delete fails to avoid getting stuck
-            pass
+        except Exception as exc:
+            cleanup_errors.append(
+                f"ChromaDB cleanup failed for document {doc.id}: {exc}"
+            )
+
+    if cleanup_errors:
+        # Keep the assistant in place so operators can retry cleanup instead of
+        # leaving orphaned storage or vector data behind.
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Assistant deletion aborted because associated storage cleanup failed.",
+        )
 
     # 5. Delete assistant from database (cascade deletes will handle PostgreSQL rows)
     await db.delete(assistant)

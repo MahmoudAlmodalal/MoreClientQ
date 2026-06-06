@@ -108,6 +108,10 @@ export async function fetchApi(path: string, options: FetchOptions = {}) {
     headers,
   });
 
+  if (response.status === 204) {
+    return undefined;
+  }
+
   if (!response.ok) {
     let errorMessage = "An error occurred";
     try {

@@ -28,6 +28,7 @@ export default function AssistantsDashboardPage() {
 
   // Page level errors
   const [error, setError] = React.useState<string | null>(null);
+  const canManageAssistants = userRole === "owner" || userRole === "admin";
 
   const fetchAssistantsList = async () => {
     try {
@@ -191,16 +192,18 @@ export default function AssistantsDashboardPage() {
                 <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mt-0.5 block">{userRole}</span>
               </div>
             </div>
-            <Button
-              onClick={() => {
-                setSelectedAssistant(undefined);
-                setIsFormOpen(true);
-              }}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 px-4 py-2"
-            >
-              <Plus className="h-4.5 w-4.5" />
-              <span>Create Assistant</span>
-            </Button>
+            {canManageAssistants && (
+              <Button
+                onClick={() => {
+                  setSelectedAssistant(undefined);
+                  setIsFormOpen(true);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 px-4 py-2"
+              >
+                <Plus className="h-4.5 w-4.5" />
+                <span>Create Assistant</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -237,15 +240,17 @@ export default function AssistantsDashboardPage() {
                 You haven&apos;t created any custom AI agents yet. Set up your first assistant to begin querying custom knowledge bases.
               </p>
             </div>
-            <Button
-              onClick={() => {
-                setSelectedAssistant(undefined);
-                setIsFormOpen(true);
-              }}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
-            >
-              Configure First Assistant
-            </Button>
+            {canManageAssistants && (
+              <Button
+                onClick={() => {
+                  setSelectedAssistant(undefined);
+                  setIsFormOpen(true);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+              >
+                Configure First Assistant
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -253,6 +258,7 @@ export default function AssistantsDashboardPage() {
               <AssistantCard
                 key={ast.id}
                 assistant={ast}
+                canManage={canManageAssistants}
                 onEdit={(assistant) => {
                   setSelectedAssistant(assistant);
                   setIsFormOpen(true);
@@ -266,7 +272,7 @@ export default function AssistantsDashboardPage() {
       </main>
 
       {/* Form Dialog Modal */}
-      {isFormOpen && (
+      {isFormOpen && canManageAssistants && (
         <AssistantForm
           title={selectedAssistant ? "Edit Assistant Settings" : "Configure New AI Assistant"}
           initialData={selectedAssistant}
