@@ -97,6 +97,7 @@ async def register_tenant_with_owner(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         ) from exc
+    await set_tenant_context(db, str(tenant.id))
     await db.refresh(tenant)
     await db.refresh(user)
     

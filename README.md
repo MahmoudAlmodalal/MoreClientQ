@@ -148,7 +148,9 @@ All protected endpoints require an `Authorization: Bearer <access_token>` header
 Create `backend/.env` with the following:
 
 ```ini
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/platform
+# IMPORTANT: Connect using a non-superuser role (e.g. app_user) so Postgres enforces Row-Level Security (RLS).
+# Use the asyncpg driver (postgresql+asyncpg://) for FastAPI async compatibility.
+DATABASE_URL=postgresql+asyncpg://app_user:app_pass@localhost:5432/platform
 REDIS_URL=redis://localhost:6379/0
 JWT_SECRET=super-secure-key-change-in-production
 JWT_ALGORITHM=HS256
