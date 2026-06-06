@@ -1,0 +1,22 @@
+# Exclude files from Docker build context at root level
+node_modules/
+.git/
+.github/
+.agents/
+.specify/
+specs/
+Dockerfile*
+.dockerignore
+*.log
+.env
+.env*
+!.env.example
+coverage/
+postgres_data/
+redis_data/
+chroma_data/
+minio_data/
+backend/.venv/
+backend/venv/
+frontend/.next/
+frontend/out/

@@ -1,0 +1,16 @@
+# Exclusions for backend Docker build
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+*.log
+.git/
+.env
+.env*
+!.env.example

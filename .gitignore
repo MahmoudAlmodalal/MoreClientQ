@@ -1,73 +1,64 @@
-# Universal
-.DS_Store
-Thumbs.db
-*.tmp
-*.swp
-*.swo
-*~
-*.bak
-.vscode/
-.idea/
-.history/
-.direnv/
-*.log
-.env
-.env.*
-!.env.example
-# Agent / Assistant metadata & configuration
-.agents/
-.claude/
-.specify/
-AGENTS.md
-CLAUDE.md
+# Dependency directories
+node_modules/
+backend/.venv/
+backend/venv/
+.venv/
+venv/
+env/
+ENV/
+.npm/
+.yarn/
+.pnpm-store/
 
-# Python (Backend)
+# Build outputs
+dist/
+build/
+backend/dist/
+.next/
+out/
+.turbo/
+.vercel/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!.env.example
+
+# Python caching & tools
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-env/
-venv/
-.venv/
-var/
-spec-sheet/
-var-run/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
 .pytest_cache/
-.ruff_cache/
-.mypy_cache/
 .coverage
 htmlcov/
+.mypy_cache/
+.ruff_cache/
 
-# Node.js / React (Frontend)
-node_modules/
-dist/
-build/
-coverage/
-.npm/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.eslintcache
-.parcel-cache
-.cache/
-.next/
-.nuxt/
-.out/
-.svelte-kit/
-.vite/
+# Logs & Celery schedule
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker / local data mounts
+postgres_data/
+redis_data/
+chroma_data/
+minio_data/
+docker-compose.override.yml
+
