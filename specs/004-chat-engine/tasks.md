@@ -127,23 +127,23 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Extend `backend/app/services/chat_service.py` with `async stream_chat(tenant_id, assistant_id, conversation_id, user_content) -> AsyncGenerator`:
+- [X] T019 [US2] Extend `backend/app/services/chat_service.py` with `async stream_chat(tenant_id, assistant_id, conversation_id, user_content) -> AsyncGenerator`:
   - Steps 1–6 same as `chat()` (validate, quota check, history, RAG retrieval + no-context fallback, build messages)
   - Call `llm_service.complete_with_fallback(messages, stream=True)` to get an `AsyncStream`
   - Yield each `ChatCompletionChunk.choices[0].delta.content` token via an `async for` loop
   - After each token, check running token count; if quota exceeded, yield a `quota_exceeded` sentinel and break
   - On loop completion, persist user + assistant messages; yield a `done` sentinel with final metadata
   - On `asyncio.CancelledError` (client disconnect), persist partial response with `[response truncated]`
-- [ ] T020 [US2] Create `backend/app/api/v1/endpoints/ws_chat.py`:
+- [X] T020 [US2] Create `backend/app/api/v1/endpoints/ws_chat.py`:
   - `WebSocket` route at `GET /ws/chat` (registered at `/api/v1/ws/chat`)
   - On connect: extract `token`, `tenant_id`, `assistant_id` from query params; validate JWT; close with `4001`/`4003` on failure
   - Message loop: receive JSON, dispatch on `type`:
     - `"ping"` → send `{"type":"pong"}`
     - `"message"` → call `chat_service.stream_chat(...)`, iterate async generator, send `token` events, handle `quota_exceeded` sentinel → send `WSErrorEvent`, handle `done` sentinel → send `WSDoneEvent`
   - On `WebSocketDisconnect` mid-stream: cancel generator, partial message already persisted by service
-- [ ] T021 [US2] Register the WebSocket router in `backend/app/api/v1/router.py`: `router.include_router(ws_router, prefix="/ws", tags=["chat-ws"])`
-- [ ] T022 [P] [US2] Create `frontend/components/chat/StreamingDot.tsx` — animated three-dot typing indicator shown while a WebSocket stream is in progress
-- [ ] T023 [US2] Update `frontend/components/chat/ChatWindow.tsx` to use WebSocket as the primary transport:
+- [X] T021 [US2] Register the WebSocket router in `backend/app/api/v1/router.py`: `router.include_router(ws_router, prefix="/ws", tags=["chat-ws"])`
+- [X] T022 [P] [US2] Create `frontend/components/chat/StreamingDot.tsx` — animated three-dot typing indicator shown while a WebSocket stream is in progress
+- [X] T023 [US2] Update `frontend/components/chat/ChatWindow.tsx` to use WebSocket as the primary transport:
   - On mount, call `chat-api.createWebSocket(...)` and store the connection
   - On send: transmit `{"type":"message",...}` JSON frame
   - On `token` event: append delta to the in-progress assistant bubble in state
@@ -151,7 +151,7 @@
   - On `error` event: show inline error message in chat
   - On `handoff` event: render `HandoffBanner`, disable input
   - Fall back to REST (`sendMessage`) if WebSocket connection fails to open
-- [ ] T024 [P] [US2] Create `frontend/components/chat/HandoffBanner.tsx` — notification banner displayed when conversation enters handoff state, explaining that a human agent has been notified
+- [X] T024 [P] [US2] Create `frontend/components/chat/HandoffBanner.tsx` — notification banner displayed when conversation enters handoff state, explaining that a human agent has been notified
 
 **Checkpoint**: WebSocket streaming delivers tokens in real-time. Quota mid-stream breach sends an error event and stops cleanly. Disconnects persist partial messages. User Stories 1 and 2 are both independently testable.
 

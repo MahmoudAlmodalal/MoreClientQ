@@ -63,7 +63,9 @@ class RedisCache:
     async def incrby(self, key: str, amount: int, expire: int | None = None) -> int | None:
         try:
             value = await self.client.incrby(key, amount)
-            if expire is not None:
+            if value == amount and expire is not None:
+                # Only set TTL on the first write so the window is not sliding.
+                # Subsequent increments within the same hour must not reset the expiry.
                 await self.client.expire(key, expire)
             return int(value)
         except Exception as e:

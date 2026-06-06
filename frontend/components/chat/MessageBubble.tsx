@@ -12,9 +12,11 @@ export interface MessageType {
 
 interface MessageBubbleProps {
   message: MessageType;
+  /** Optional indicator (e.g. StreamingDot) shown when message content is empty */
+  streamingIndicator?: React.ReactNode;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, streamingIndicator }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   if (message.role === "system") {
@@ -46,7 +48,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               ? "bg-indigo-600 text-white rounded-tr-none" 
               : "bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none"
           }`}>
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            {message.content ? (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            ) : streamingIndicator ? (
+              streamingIndicator
+            ) : null}
 
             {/* Model Badge */}
             {!isUser && message.model_used && (
