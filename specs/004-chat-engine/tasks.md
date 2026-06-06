@@ -22,9 +22,10 @@
 
 **Purpose**: Extend project configuration and install new dependencies required by the Chat Engine. Must complete before any Phase 2 work.
 
-- [ ] T001 Add `openai>=1.30.0` to `backend/requirements.txt`, then rebuild and restart the backend container: `docker compose build backend && docker compose up -d backend`
-- [ ] T002 [P] Add LLM configuration fields to `backend/app/core/config.py`: `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_TIMEOUT_SECONDS` (int, default 30), `RAG_TOP_K` (int, default 5), `HANDOFF_KEYWORDS` (comma-separated string)
-- [ ] T003 [P] Update `.env` and `.env.example` with the new LLM + handoff env vars documented in `specs/004-chat-engine/quickstart.md`
+- [X] T001 Add `openai>=1.30.0` to `backend/requirements.txt`, then rebuild and restart the backend container: `docker compose build backend && docker compose up -d backend`
+- [X] T002 [P] Add LLM configuration fields to `backend/app/core/config.py`: `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_TIMEOUT_SECONDS` (int, default 30), `RAG_TOP_K` (int, default 5), `HANDOFF_KEYWORDS` (comma-separated string)
+- [X] T003 [P] Update `.env` and `.env.example` with the new LLM + handoff env vars documented in `specs/004-chat-engine/quickstart.md`
+
 
 ---
 
@@ -34,19 +35,19 @@
 
 **⚠️ CRITICAL**: This phase blocks all story phases below.
 
-- [ ] T004 Write Alembic migration `backend/alembic/versions/20260606_001_add_chat_engine_schema.py`:
+- [X] T004 Write Alembic migration `backend/alembic/versions/20260606_001_add_chat_engine_schema.py`:
   - Add `title VARCHAR(255) NULL` column to `conversations`
   - Alter `status` column: change default to `'bot'`, add `CHECK (status IN ('bot', 'handoff', 'closed'))`
   - Add index `idx_conversations_status` on `(tenant_id, status)`
   - `ALTER TABLE conversations ENABLE ROW LEVEL SECURITY`
   - `ALTER TABLE messages ENABLE ROW LEVEL SECURITY`
   - Create `FOR ALL` RLS policy on `conversations` and `messages` using `current_setting('app.current_tenant_id')`
-- [ ] T005 Apply the migration: run `docker compose exec backend alembic upgrade head` and verify it succeeds without errors
-- [ ] T006 [P] Update `backend/app/models/conversation.py`:
+- [X] T005 Apply the migration: run `docker compose exec backend alembic upgrade head` and verify it succeeds without errors
+- [X] T006 [P] Update `backend/app/models/conversation.py`:
   - Add `title = Column(String(255), nullable=True)` field
   - Update `status` column default to `"bot"` and add `CheckConstraint` with allowed values `('bot', 'handoff', 'closed')`
   - Add `idx_conversations_status` index to `__table_args__`
-- [ ] T007 [P] Create `backend/app/schemas/chat.py` with Pydantic models:
+- [X] T007 [P] Create `backend/app/schemas/chat.py` with Pydantic models:
   - `ChatRequest(assistant_id: UUID, conversation_id: UUID | None, message: str)` with `max_length=4000` validator
   - `ChatResponse(conversation_id, message_id, role, content, tokens_used, sources, model_used)`
   - `SourceReference(document_id, chunk_text, score)`
@@ -55,8 +56,8 @@
   - `WSDoneEvent(type="done", conversation_id, message_id, tokens_used, model_used, sources)`
   - `WSErrorEvent(type="error", code: str, detail: str)`
   - `WSHandoffEvent(type="handoff", conversation_id, detail: str)`
-- [ ] T008 [P] Extend `backend/app/services/rag/chroma_client.py` with an async `retrieve(tenant_id, query_text, top_k) -> list[SourceReference]` method that queries the `tenant_{uuid}` collection and returns the top-k chunks with scores
-- [ ] T009 [P] Create stub `backend/app/services/handoff_service.py` with:
+- [X] T008 [P] Extend `backend/app/services/rag/chroma_client.py` with an async `retrieve(tenant_id, query_text, top_k) -> list[SourceReference]` method that queries the `tenant_{uuid}` collection and returns the top-k chunks with scores
+- [X] T009 [P] Create stub `backend/app/services/handoff_service.py` with:
   - `is_handoff_trigger(message: str) -> bool` returning `False` always (no-op stub so it can be imported by T012's REST endpoint without error; full implementation done in Phase 5 T024)
   - `async trigger_handoff(tenant_id, conversation_id, assistant_id)` as a `pass` stub
 
