@@ -317,3 +317,130 @@ async def test_list_documents(client: AsyncClient, registered_owner, sample_assi
     filenames = [d["filename"] for d in data]
     assert "doc1.txt" in filenames
     assert "doc2.txt" in filenames
+
+@pytest.mark.asyncio
+async def test_delete_document_success(client: AsyncClient, registered_owner, sample_assistant):
+    tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        doc = Document(
+            tenant_id=tenant_uuid,
+            assistant_id=sample_assistant,
+            filename="delete-me.txt",
+            storage_key="tenant/acme/docs/delete-me.txt",
+            file_type="txt",
+            status="ready"
+        )
+        session.add(doc)
+        await session.commit()
+        doc_id = doc.id
+
+    with patch("app.api.v1.endpoints.documents.storage_service.delete_file") as mock_delete_file, \
+         patch("app.api.v1.endpoints.documents.chroma_client.delete_document_vectors") as mock_delete_vectors:
+        
+        response = await client.delete(
+            f"/api/v1/documents/{doc_id}",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            }
+        )
+        assert response.status_code == 204
+        
+        mock_delete_file.assert_called_once_with("tenant/acme/docs/delete-me.txt")
+        mock_delete_vectors.assert_called_once_with(registered_owner["tenant_id"], str(doc_id))
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        check_doc = await session.get(Document, doc_id)
+        assert check_doc is None
+
+@pytest.mark.asyncio
+async def test_delete_document_processing_cancels_celery(client: AsyncClient, registered_owner, sample_assistant):
+    tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        doc = Document(
+            tenant_id=tenant_uuid,
+            assistant_id=sample_assistant,
+            filename="processing.txt",
+            storage_key="tenant/acme/docs/processing.txt",
+            file_type="txt",
+            status="processing",
+            doc_metadata={"celery_task_id": "test-task-123"}
+        )
+        session.add(doc)
+        await session.commit()
+        doc_id = doc.id
+
+    with patch("app.api.v1.endpoints.documents.celery_app.control.revoke") as mock_revoke, \
+         patch("app.api.v1.endpoints.documents.storage_service.delete_file") as mock_delete_file, \
+         patch("app.api.v1.endpoints.documents.chroma_client.delete_document_vectors") as mock_delete_vectors:
+        
+        response = await client.delete(
+            f"/api/v1/documents/{doc_id}",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            }
+        )
+        assert response.status_code == 204
+        
+        mock_revoke.assert_called_once_with("test-task-123", terminate=True)
+        mock_delete_file.assert_called_once_with("tenant/acme/docs/processing.txt")
+        mock_delete_vectors.assert_called_once_with(registered_owner["tenant_id"], str(doc_id))
+
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        check_doc = await session.get(Document, doc_id)
+        assert check_doc is None
+
+@pytest.mark.asyncio
+async def test_delete_document_cleanup_failure(client: AsyncClient, registered_owner, sample_assistant):
+    tenant_uuid = uuid.UUID(registered_owner["tenant_id"])
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        doc = Document(
+            tenant_id=tenant_uuid,
+            assistant_id=sample_assistant,
+            filename="fail.txt",
+            storage_key="tenant/acme/docs/fail.txt",
+            file_type="txt",
+            status="ready"
+        )
+        session.add(doc)
+        await session.commit()
+        doc_id = doc.id
+
+    with patch("app.api.v1.endpoints.documents.storage_service.delete_file", side_effect=Exception("MinIO down")), \
+         patch("app.api.v1.endpoints.documents.chroma_client.delete_document_vectors") as mock_delete_vectors:
+        
+        response = await client.delete(
+            f"/api/v1/documents/{doc_id}",
+            headers={
+                "Authorization": f"Bearer {registered_owner['access_token']}",
+                "X-Tenant-ID": registered_owner["tenant_id"]
+            }
+        )
+        assert response.status_code == 500
+        assert "Document deletion aborted because associated storage cleanup failed" in response.json()["detail"]
+
+    # Verify document is still in DB since delete was aborted
+    async with SessionLocal() as session:
+        await enable_rls_bypass(session)
+        check_doc = await session.get(Document, doc_id)
+        assert check_doc is not None
+
+@pytest.mark.asyncio
+async def test_delete_document_not_found(client: AsyncClient, registered_owner):
+    fake_id = uuid.uuid4()
+    response = await client.delete(
+        f"/api/v1/documents/{fake_id}",
+        headers={
+            "Authorization": f"Bearer {registered_owner['access_token']}",
+            "X-Tenant-ID": registered_owner["tenant_id"]
+        }
+    )
+    assert response.status_code == 404
+    assert "Document not found" in response.json()["detail"]
+

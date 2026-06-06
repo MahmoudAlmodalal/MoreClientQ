@@ -96,14 +96,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T023 [P] [US3] Add list and delete document tests, including deletion of a processing document and 30-second index removal validation, in `backend/tests/api/test_documents.py`
+- [X] T023 [P] [US3] Add list and delete document tests, including deletion of a processing document and 30-second index removal validation, in `backend/tests/api/test_documents.py`
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Implement list documents endpoint in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T025 [US3] Implement delete document endpoint (removing files from MinIO, deleting vectors from ChromaDB, updating DB, and cancelling in-flight ingestion when processing) in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T026 [P] [US3] Create document list component in `frontend/components/knowledge-base/document-list.tsx`
-- [ ] T027 [US3] Integrate document listing and deletion in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
+- [X] T024 [US3] Implement list documents endpoint in `backend/app/api/v1/endpoints/documents.py`
+- [X] T025 [US3] Implement delete document endpoint (removing files from MinIO, deleting vectors from ChromaDB, updating DB, and cancelling in-flight ingestion when processing) in `backend/app/api/v1/endpoints/documents.py`
+- [X] T026 [P] [US3] Create document list component in `frontend/components/knowledge-base/document-list.tsx`
+- [X] T027 [US3] Integrate document listing and deletion in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
 
 **Checkpoint**: Document management and listing is fully operational.
 

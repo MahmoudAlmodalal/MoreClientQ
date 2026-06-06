@@ -1,6 +1,7 @@
 import uuid
 import io
 import httpx
+import asyncio
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -14,7 +15,9 @@ from app.models.document import Document
 from app.models.tenant import Tenant
 from app.schemas.document import DocumentResponse, DocumentStatusResponse, URLIngestRequest
 from app.services.storage import storage_service
+from app.services.rag.chroma_client import chroma_client
 from app.tasks.ingest import ingest_document
+from app.tasks.celery_app import celery_app
 
 router = APIRouter()
 
@@ -145,7 +148,13 @@ async def upload_document(
     await db.refresh(document)
 
     # 8. Dispatch background Celery task
-    ingest_document.delay(str(doc_id))
+    task = ingest_document.delay(str(doc_id))
+
+    # Store celery task id in metadata for potential cancellation
+    from sqlalchemy.orm.attributes import flag_modified
+    document.doc_metadata = {**document.doc_metadata, "celery_task_id": task.id}
+    flag_modified(document, "doc_metadata")
+    await db.commit()
 
     return document
 
@@ -214,7 +223,13 @@ async def ingest_url(
     await db.refresh(document)
 
     # 6. Dispatch background Celery task
-    ingest_document.delay(str(doc_id))
+    task = ingest_document.delay(str(doc_id))
+
+    # Store celery task id in metadata for potential cancellation
+    from sqlalchemy.orm.attributes import flag_modified
+    document.doc_metadata = {**document.doc_metadata, "celery_task_id": task.id}
+    flag_modified(document, "doc_metadata")
+    await db.commit()
 
     return document
 
@@ -260,3 +275,71 @@ async def get_document_status(
             detail="Document not found"
         )
     return document
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_document(
+    id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_roles("owner", "admin")),
+):
+    """
+    Delete a document.
+    Cancels in-flight ingestion if status is pending/processing.
+    Removes storage objects from MinIO and vector chunks from ChromaDB.
+    """
+    tenant_id = _get_tenant_id_from_user(current_user)
+
+    # 1. Fetch document and verify tenancy
+    result = await db.execute(
+        select(Document).where(
+            Document.id == id,
+            Document.tenant_id == tenant_id
+        )
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+
+    # 2. Cancel in-flight ingestion task if processing or pending
+    if document.status in ("pending", "processing"):
+        task_id = (document.doc_metadata or {}).get("celery_task_id")
+        if task_id:
+            try:
+                celery_app.control.revoke(task_id, terminate=True)
+            except Exception:
+                pass
+
+    # 3. Clean up external resources (MinIO storage and ChromaDB vectors)
+    cleanup_errors = []
+
+    # Only delete from MinIO if it's a file upload (not a URL)
+    if document.storage_key and document.storage_key != "url":
+        try:
+            await asyncio.to_thread(storage_service.delete_file, document.storage_key)
+        except Exception as exc:
+            cleanup_errors.append(f"MinIO cleanup failed: {exc}")
+
+    # Delete vectors from ChromaDB
+    try:
+        await asyncio.to_thread(
+            chroma_client.delete_document_vectors,
+            str(tenant_id),
+            str(document.id)
+        )
+    except Exception as exc:
+        cleanup_errors.append(f"ChromaDB cleanup failed: {exc}")
+
+    if cleanup_errors:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Document deletion aborted because associated storage cleanup failed: {', '.join(cleanup_errors)}"
+        )
+
+    # 4. Delete document record from DB
+    await db.delete(document)
+    await db.commit()
+
