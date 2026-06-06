@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { fetchApi, setCookie, decodeJwt } from "@/lib/api";
 import { KeyRound, Mail, AlertCircle, Loader2, Globe, Building2, User } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("token");
 
@@ -372,5 +372,13 @@ export default function RegisterPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <React.Suspense fallback={<div className="text-white text-center py-12">Loading...</div>}>
+      <RegisterPageContent />
+    </React.Suspense>
   );
 }

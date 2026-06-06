@@ -50,7 +50,7 @@ export async function sendDemoMessage(
   message: string,
   onToken: (token: string) => void,
   onDone: (messageCount: number) => void,
-  onError: (error: any) => void
+  onError: (error: unknown) => void
 ): Promise<void> {
   try {
     const session = getDemoSession();
@@ -69,7 +69,7 @@ export async function sendDemoMessage(
     });
 
     if (!response.ok) {
-      let errorData: any;
+      let errorData: unknown;
       try {
         errorData = await response.json();
       } catch {
@@ -116,7 +116,7 @@ export async function sendDemoMessage(
         }
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     onError(err);
   }
 }

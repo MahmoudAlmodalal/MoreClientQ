@@ -58,7 +58,7 @@ export default function Testimonials() {
                   ))}
                 </div>
                 <p className="text-sm text-slate-300 italic leading-relaxed">
-                  "{t.quote}"
+                  &ldquo;{t.quote}&rdquo;
                 </p>
               </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Bot, Shield, User } from 'lucide-react';
+import { ArrowRight, Bot, User } from 'lucide-react';
 
 interface MockMessage {
   role: 'user' | 'assistant';
@@ -18,7 +18,6 @@ const MOCK_CONVERSATION: MockMessage[] = [
 
 export default function Hero() {
   const [messages, setMessages] = useState<MockMessage[]>([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 

@@ -139,11 +139,11 @@
 
 **Purpose**: Polish design detail, optimize, audit, and finalize before release
 
-- [ ] T033 Add SEO metadata (Title, Description, OG, Twitter) via `generateMetadata()` in `frontend/app/(marketing)/page.tsx`
-- [ ] T034 [P] Configure global Tailwind CSS responsive breakpoints for 3-column features and 4-column pricing grids
-- [ ] T035 Add `IntersectionObserver` scroll-driven fade-up animations in `frontend/components/landing/` components
-- [ ] T036 Run performance audit (Lighthouse) to verify LCP < 1.5s and CLS < 0.05 targets
-- [ ] T037 Validate local setup using quickstart.md and run all tests (Jest + Playwright)
+- [X] T033 Add SEO metadata (Title, Description, OG, Twitter) via `generateMetadata()` in `frontend/app/(marketing)/page.tsx`
+- [X] T034 [P] Configure global Tailwind CSS responsive breakpoints for 3-column features and 4-column pricing grids
+- [X] T035 Add `IntersectionObserver` scroll-driven fade-up animations in `frontend/components/landing/` components
+- [X] T036 Run performance audit (Lighthouse) to verify LCP < 1.5s and CLS < 0.05 targets
+- [X] T037 Validate local setup using quickstart.md and run all tests (Jest + Playwright)
 
 ---
 

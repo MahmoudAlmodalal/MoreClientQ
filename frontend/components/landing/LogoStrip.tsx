@@ -24,7 +24,7 @@ export default function LogoStrip() {
               key={index}
               className="text-slate-400 font-mono text-sm md:text-base font-bold tracking-tight hover:text-white transition-colors cursor-default"
             >
-              //{partner.name.toUpperCase()}
+              {"//"}{partner.name.toUpperCase()}
             </div>
           ))}
         </div>

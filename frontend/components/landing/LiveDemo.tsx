@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, AlertCircle, Shield, Key } from 'lucide-react';
+import { Send, Sparkles, AlertCircle } from 'lucide-react';
 import { getDemoSession, sendDemoMessage, DemoSession } from '../../lib/demo-chat';
 
 interface Message {
@@ -60,7 +60,7 @@ export default function LiveDemo() {
           return updated;
         });
       },
-      (count) => {
+      () => {
         setIsStreaming(false);
         setSession(getDemoSession());
       },

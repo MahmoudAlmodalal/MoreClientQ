@@ -39,7 +39,7 @@ describe('LiveDemo Component', () => {
   });
 
   it('handles user typing and successful streaming response', async () => {
-    mockSendDemoMessage.mockImplementation(async (msg, onToken, onDone, onError) => {
+    mockSendDemoMessage.mockImplementation(async (_msg, onToken, onDone) => {
       // Simulate tokens streaming
       onToken('Hello ');
       onToken('user!');
