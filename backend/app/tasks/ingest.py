@@ -138,13 +138,16 @@ async def async_ingest_document(self, document_id: str):
             doc.error_message = str(e)
             
             # Structured logging of ingestion failure (T020)
+            import datetime
             log_payload = {
                 "event": "ingestion_failure",
                 "document_id": document_id,
                 "tenant_id": str(doc.tenant_id),
                 "assistant_id": str(doc.assistant_id),
+                "filename_or_url": doc.filename,
                 "attempt": current_attempt,
-                "error": str(e)
+                "error": str(e),
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
             logger.error(f"STRUCTURED_LOG: {log_payload}")
 

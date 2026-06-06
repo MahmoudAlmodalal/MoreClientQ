@@ -69,6 +69,7 @@ async def test_upload_document_success(client: AsyncClient, registered_owner, sa
          patch("app.api.v1.endpoints.documents.ingest_document.delay") as mock_celery:
         
         mock_upload.return_value = "tenant/acme/docs/some-uuid/test.txt"
+        mock_celery.return_value.id = "some-celery-task-id"
 
         response = await client.post(
             "/api/v1/documents/upload",
@@ -207,6 +208,7 @@ async def test_ingest_url_success(client: AsyncClient, registered_owner, sample_
          patch("app.api.v1.endpoints.documents.ingest_document.delay") as mock_celery:
         
         mock_get.return_value = MagicMock(status_code=200)
+        mock_celery.return_value.id = "some-celery-task-id"
 
         response = await client.post(
             "/api/v1/documents/url",
