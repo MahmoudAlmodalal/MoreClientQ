@@ -20,9 +20,9 @@
 
 **Purpose**: Project initialization and basic structure updates.
 
-- [ ] T001 [P] Install `minio` in dependency file `backend/requirements.txt`
-- [ ] T002 [P] Configure MinIO connection parameters in `backend/app/core/config.py`
-- [ ] T003 Create database migrations for assistants and documents updates in `backend/alembic/versions/`
+- [X] T001 [P] Install `minio` in dependency file `backend/requirements.txt`
+- [X] T002 [P] Configure MinIO connection parameters in `backend/app/core/config.py`
+- [X] T003 Create database migrations for assistants and documents updates in `backend/alembic/versions/`
 
 ---
 

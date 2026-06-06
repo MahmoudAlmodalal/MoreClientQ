@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str = "admin"
     MINIO_SECRET_KEY: str = "password"
+    MINIO_SECURE: bool = False
+    MINIO_BUCKET_NAME: str = "platform-documents"
 
     # Security Settings
     JWT_SECRET_KEY: str = "your_jwt_secret_key_here"

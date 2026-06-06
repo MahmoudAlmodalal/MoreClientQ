@@ -1,5 +1,5 @@
 from app.db.session import Base, TenantMixin
-from sqlalchemy import Column, Integer, DateTime, text, String
+from sqlalchemy import Column, Integer, DateTime, text, String, Index
 from sqlalchemy.dialects.postgresql import UUID
 
 class QuotaLog(Base, TenantMixin):
@@ -16,4 +16,8 @@ class QuotaLog(Base, TenantMixin):
         DateTime(timezone=True),
         nullable=False,
         server_default=text("now()")
+    )
+
+    __table_args__ = (
+        Index("idx_quota_logs_tenant_created", "tenant_id", text("created_at DESC")),
     )

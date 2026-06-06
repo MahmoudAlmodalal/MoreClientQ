@@ -1,5 +1,6 @@
+import datetime
 from app.db.session import Base, TenantMixin
-from sqlalchemy import Column, String, Boolean, Integer, Float, Text, DateTime, text
+from sqlalchemy import Column, String, Boolean, Integer, Float, Text, DateTime, text, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 class Assistant(Base, TenantMixin):
@@ -21,4 +22,14 @@ class Assistant(Base, TenantMixin):
         DateTime(timezone=True),
         nullable=False,
         server_default=text("now()")
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+        onupdate=datetime.datetime.utcnow
+    )
+
+    __table_args__ = (
+        Index("idx_assistants_tenant", "tenant_id"),
     )

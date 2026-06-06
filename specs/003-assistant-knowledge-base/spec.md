@@ -18,6 +18,7 @@
 - Q: What should happen when an admin submits a URL that is unreachable, returns a non-200 status, or redirects to a login page? → A: Reject the submission immediately with a descriptive error before queuing the task (e.g., "This URL could not be reached or requires authentication.").
 - Q: Should ingestion failures be surfaced beyond the UI (e.g., logged or notified to the admin out-of-band)? → A: Record each ingestion failure as a structured log entry accessible to the platform operator; no tenant-facing notification beyond the UI "failed" status is required in Phase 2.
 - Q: What maximum file upload size should Phase 2 support? → A: 10 MB maximum; files above 10 MB are rejected before upload.
+- Q: What should happen when an admin uploads a document while the tenant's storage quota is full? → A: Reject before upload with a clear "storage quota exceeded" error; no document is created.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -91,7 +92,7 @@ A tenant administrator retrieves the embed code for a configured assistant so th
 ### Edge Cases
 
 - What happens when an admin attempts to create a second assistant when the tenant's plan only allows one?
-- How does the system handle a document upload when the tenant's storage quota is full?
+- If a tenant's storage quota is full, document uploads are rejected before upload begins with a clear "storage quota exceeded" error and no document entry is created.
 - If the same file is uploaded twice to the same assistant, the upload is rejected with a clear error message: "This file already exists in this assistant's knowledge base." No duplicate document entry is created.
 - How does the system behave if the knowledge base document count exceeds the plan's document limit?
 - If an admin attempts to delete an assistant that has one or more active conversations, the deletion is blocked and an error is displayed: "This assistant has N active conversations. Resolve or end them before deleting."
@@ -120,6 +121,7 @@ A tenant administrator retrieves the embed code for a configured assistant so th
 - **FR-017**: The system MUST reject a document upload if a document with the same filename already exists in the same assistant's knowledge base, displaying the error: "This file already exists in this assistant's knowledge base."
 - **FR-018**: The system MUST prevent deletion of an assistant that has one or more conversations in "active" status, returning an error message that includes the count of active conversations and instructs the admin to resolve them before retrying the deletion.
 - **FR-019**: The system MUST emit a structured log entry for every document ingestion failure, including at minimum: tenant ID, document ID, filename or URL, failure reason, attempt number, and timestamp. These log entries are accessible to platform operators and are NOT surfaced to the tenant admin beyond the "failed" status in the UI.
+- **FR-020**: The system MUST reject document uploads before upload begins when the tenant's storage quota is full, displaying a clear "storage quota exceeded" error and creating no document entry.
 
 ### Key Entities *(include if feature involves data)*
 

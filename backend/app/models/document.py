@@ -1,5 +1,5 @@
 from app.db.session import Base, TenantMixin
-from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, text, Index
+from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, text, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 class Document(Base, TenantMixin):
@@ -12,8 +12,8 @@ class Document(Base, TenantMixin):
     )
     assistant_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("assistants.id", ondelete="SET NULL"),
-        nullable=True
+        ForeignKey("assistants.id", ondelete="CASCADE"),
+        nullable=False
     )
     filename = Column(String(512), nullable=False)
     storage_key = Column(String(1024), nullable=False)
@@ -33,4 +33,6 @@ class Document(Base, TenantMixin):
 
     __table_args__ = (
         Index("idx_documents_tenant_status", "tenant_id", "status"),
+        Index("idx_documents_assistant", "assistant_id"),
+        UniqueConstraint("assistant_id", "filename", name="uq_documents_assistant_filename"),
     )
