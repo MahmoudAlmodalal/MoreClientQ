@@ -165,17 +165,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [P] [US3] Implement full `backend/app/services/handoff_service.py` (replacing the Phase 2 stub):
+- [X] T025 [P] [US3] Implement full `backend/app/services/handoff_service.py` (replacing the Phase 2 stub):
   - `is_handoff_trigger(message: str) -> bool` — normalises to lowercase, checks against compiled regex from `config.HANDOFF_KEYWORDS` (split by comma, stripped, regex-escaped, joined with `|`)
   - `async trigger_handoff(tenant_id, conversation_id, assistant_id)`:
     1. Update `conversations.status = 'handoff'` for the given `conversation_id` (with RLS context)
     2. Publish to Redis channel `handoff:{tenant_id}`: `{"conversation_id": "...", "event": "handoff_requested", "assistant_id": "...", "ts": "<ISO-8601>"}`
     3. Return `True`
-- [ ] T026 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/chat.py`:
+- [X] T026 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/chat.py`:
   - Before calling `chat_service.chat(...)`, call `handoff_service.is_handoff_trigger(request.message)`
   - If `True`, call `handoff_service.trigger_handoff(...)` and raise `ConversationInHandoffError` → 409
   - Also check `conversation.status == 'handoff'` at the start of each request and reject with 409 if already in handoff
-- [ ] T027 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/ws_chat.py`:
+- [X] T027 [US3] Integrate handoff detection into `backend/app/api/v1/endpoints/ws_chat.py`:
   - In the `"message"` handler, call `handoff_service.is_handoff_trigger(content)` before starting the stream
   - If triggered, call `handoff_service.trigger_handoff(...)`, send `WSHandoffEvent`, and stop further LLM processing for that conversation
   - Check `conversation.status` on each message loop iteration; if `handoff`, send `WSHandoffEvent` and skip LLM

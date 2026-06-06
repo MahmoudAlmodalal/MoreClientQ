@@ -67,6 +67,7 @@ async def chat_endpoint(
         # 1. Check for handoff keywords before calling chat_service
         if handoff_service.is_handoff_trigger(payload.message):
             conv_id = payload.conversation_id
+            created_conv = None
             if not conv_id:
                 # Validate assistant belongs to tenant first to throw 404 if invalid
                 assistant_res = await db.execute(
@@ -83,9 +84,8 @@ async def chat_endpoint(
                     )
 
                 # Create the conversation so we can transition it to handoff.
-                # Roll back if trigger_handoff subsequently fails to avoid orphans.
                 from uuid import uuid4
-                conv = Conversation(
+                created_conv = Conversation(
                     tenant_id=tenant_id,
                     assistant_id=payload.assistant_id,
                     session_token=uuid4().hex,
@@ -93,15 +93,31 @@ async def chat_endpoint(
                     channel="web",
                     title=payload.message[:100]
                 )
-                db.add(conv)
+                db.add(created_conv)
                 await db.flush()  # get conv.id without committing yet
-                conv_id = conv.id
+                conv_id = created_conv.id
+
+            if created_conv:
+                try:
+                    await db.commit()  # commit first so it is visible to trigger_handoff's session
+                except Exception:
+                    await db.rollback()
+                    return JSONResponse(
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        content={"detail": "Handoff could not be initiated. Please try again."},
+                        headers={"Cache-Control": "no-store"},
+                    )
 
             try:
                 await handoff_service.trigger_handoff(tenant_id, conv_id, payload.assistant_id)
-                await db.commit()  # commit conversation only after handoff succeeds
             except Exception:
-                await db.rollback()  # don't leave an orphan conversation
+                if created_conv:
+                    try:
+                        # clean up orphan conversation since handoff failed
+                        await db.delete(created_conv)
+                        await db.commit()
+                    except Exception:
+                        pass
                 return JSONResponse(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     content={"detail": "Handoff could not be initiated. Please try again."},

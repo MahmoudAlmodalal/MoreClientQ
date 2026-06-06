@@ -114,6 +114,26 @@ async def ws_chat_endpoint(
             async with SessionLocal() as db:
                 await set_tenant_context(db, str(tenant_uuid))
 
+                # Check if conversation is already in handoff
+                if conversation_id:
+                    from sqlalchemy.future import select
+                    from app.models.conversation import Conversation
+                    conv_res = await db.execute(
+                        select(Conversation).where(
+                            Conversation.id == conversation_id,
+                            Conversation.tenant_id == tenant_uuid
+                        )
+                    )
+                    conv = conv_res.scalar_one_or_none()
+                    if conv and conv.status == "handoff":
+                        await websocket.send_text(
+                            WSHandoffEvent(
+                                conversation_id=conversation_id,
+                                detail="This conversation has been transferred to a human agent.",
+                            ).model_dump_json()
+                        )
+                        continue
+
                 # Check handoff trigger before streaming
                 if handoff_service.is_handoff_trigger(content):
                     try:
