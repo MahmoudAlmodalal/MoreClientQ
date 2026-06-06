@@ -88,11 +88,11 @@
 **Independent Test**: Access dashboard on `acme.localhost:3000`, verify `X-Tenant-ID` injection in headers via logs.
 
 ### Tests for User Story 3
-- [ ] T018 [P] [US3] Write unit tests for Next.js subdomain parsing and routing in `frontend/tests/middleware.test.ts`
+- [X] T018 [P] [US3] Write unit tests for Next.js subdomain parsing and routing in `frontend/tests/middleware.test.ts`
 
 ### Implementation for User Story 3
-- [ ] T019 [US3] Implement slug lookup API endpoint (`GET /api/v1/tenants/resolve/{slug}`) in `backend/app/api/v1/endpoints/tenants.py`
-- [ ] T020 [US3] Implement subdomain extraction, Redis cache-aside lookup, and header forwarding in `frontend/middleware.ts`
+- [X] T019 [US3] Implement slug lookup API endpoint (`GET /api/v1/tenants/resolve/{slug}`) in `backend/app/api/v1/endpoints/tenants.py`
+- [X] T020 [US3] Implement subdomain extraction, Redis cache-aside lookup, and header forwarding in `frontend/middleware.ts`
 
 **Checkpoint**: Subdomain context maps correctly through Next.js frontend to API backend.
 
