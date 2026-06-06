@@ -105,11 +105,11 @@
 **Independent Test**: Execute query from Tenant A session, verify Tenant B data is unreachable.
 
 ### Tests for User Story 4
-- [ ] T021 [P] [US4] Write DB tests verifying RLS query constraints on the `users` table in `backend/tests/db/test_rls.py`
+- [X] T021 [P] [US4] Write DB tests verifying RLS query constraints on the `users` table in `backend/tests/db/test_rls.py`
 
 ### Implementation for User Story 4
-- [ ] T022 [US4] Implement `TenantMiddleware` in `backend/app/core/middleware.py` to extract `X-Tenant-ID` and run `SET LOCAL app.current_tenant_id`
-- [ ] T023 [US4] Create Alembic migration script to enable RLS policies on `users` table in `backend/alembic/versions/`
+- [X] T022 [US4] Implement `TenantMiddleware` in `backend/app/core/middleware.py` to extract `X-Tenant-ID` and run `SET LOCAL app.current_tenant_id`
+- [X] T023 [US4] Create Alembic migration script to enable RLS policies on `users` table in `backend/alembic/versions/`
 
 **Checkpoint**: Secure data isolation is mathematically enforced at database layer.
 

@@ -1,5 +1,7 @@
 import os
 import time
+import logging
+from fastapi import Request
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import Column, ForeignKey
@@ -7,6 +9,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import text
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Create the async engine
 engine = create_async_engine(settings.DATABASE_URL, echo=settings.DB_ECHO)
@@ -34,9 +38,19 @@ class TenantMixin:
             index=True
         )
 
-async def get_db():
-    """Dependency for obtaining an async database session."""
+async def get_db(request: Request = None):
+    """Dependency for obtaining an async database session with tenant context."""
     async with SessionLocal() as session:
+        tenant_id = None
+        if request is not None:
+            tenant_id = getattr(request.state, "tenant_id", None)
+        if tenant_id:
+            try:
+                await session.execute(
+                    text(f"SET LOCAL app.current_tenant_id = '{tenant_id}'")
+                )
+            except Exception as e:
+                logger.warning(f"Failed to set app.current_tenant_id: {e}")
         yield session
 
 async def check_db_health(session: AsyncSession) -> tuple[bool, float, str | None]:

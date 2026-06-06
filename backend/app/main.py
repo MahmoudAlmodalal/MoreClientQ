@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.v1.router import api_router
 from app.api.v1.health import health_check
 from app.core.config import settings
+from app.core.middleware import TenantMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Tenant Middleware - extracts X-Tenant-ID and sets request.state.tenant_id
+app.add_middleware(TenantMiddleware)
 
 # Global Exception Handlers
 @app.exception_handler(StarletteHTTPException)

@@ -62,3 +62,4 @@ chroma_data/
 minio_data/
 docker-compose.override.yml
 
+.agents/
