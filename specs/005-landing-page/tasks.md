@@ -26,9 +26,9 @@
 
 **Purpose**: Project initialization and design system setup
 
-- [ ] T001 Create project directories and empty placeholders per implementation plan structure
-- [ ] T002 [P] Configure Geist and Geist Mono fonts via `next/font/google` in `frontend/app/layout.tsx`
-- [ ] T003 [P] Configure custom CSS variables for design system tokens in `frontend/app/globals.css`
+- [X] T001 Create project directories and empty placeholders per implementation plan structure
+- [X] T002 [P] Configure Geist and Geist Mono fonts via `next/font/google` in `frontend/app/layout.tsx`
+- [X] T003 [P] Configure custom CSS variables for design system tokens in `frontend/app/globals.css`
 
 ---
 
