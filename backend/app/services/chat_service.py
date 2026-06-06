@@ -194,6 +194,9 @@ async def stream_chat(
         dict: final "done" sentinel with conversation_id, message_id, tokens_used, model_used, sources
     On asyncio.CancelledError (client disconnect): persists partial response with "[response truncated]".
     """
+    # Safety guard: explicitly bind RLS tenant context (mirrors chat() above).
+    await set_tenant_context(db, str(tenant_id))
+
     # 1. Validate assistant belongs to tenant
     assistant_res = await db.execute(
         select(Assistant).where(
@@ -249,7 +252,9 @@ async def stream_chat(
     sources = await chroma_client.retrieve(str(tenant_id), user_content, top_k=settings.RAG_TOP_K)
 
     # 6. Build LLM messages array
-    llm_messages = [{"role": "system", "content": assistant.system_prompt}]
+    # Guard against NULL system_prompt — OpenAI rejects None content fields.
+    system_prompt = assistant.system_prompt or "You are a helpful AI assistant."
+    llm_messages = [{"role": "system", "content": system_prompt}]
     if not sources:
         llm_messages.append({"role": "system", "content": "No relevant information was found in the knowledge base. Politely inform the user."})
     else:

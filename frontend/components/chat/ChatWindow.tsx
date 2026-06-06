@@ -10,11 +10,12 @@ import { Send, Loader2, AlertCircle, Sparkles, Wifi, WifiOff } from "lucide-reac
 
 interface ChatWindowProps {
   assistantId: string;
+  tenantId?: string;
 }
 
 type WSState = "connecting" | "open" | "closed" | "error";
 
-export function ChatWindow({ assistantId }: ChatWindowProps) {
+export function ChatWindow({ assistantId, tenantId }: ChatWindowProps) {
   const [messages, setMessages] = React.useState<MessageType[]>([]);
   const [input, setInput] = React.useState("");
   const [conversationId, setConversationId] = React.useState<string | null>(null);
@@ -44,16 +45,18 @@ export function ChatWindow({ assistantId }: ChatWindowProps) {
       return;
     }
 
+    // Use the tenantId prop if provided (passed from the server component);
+    // fall back to decoding it from the JWT for resilience.
     const claims = decodeJwt(token);
-    const tenantId: string = claims?.tenant_id || "";
-    if (!tenantId) {
+    const resolvedTenantId: string = tenantId || claims?.tenant_id || "";
+    if (!resolvedTenantId) {
       setWsState("error");
       return;
     }
 
     let ws: WebSocket;
     try {
-      ws = createWebSocket(assistantId, tenantId, token);
+      ws = createWebSocket(assistantId, resolvedTenantId, token);
     } catch {
       setWsState("error");
       return;
@@ -219,22 +222,42 @@ export function ChatWindow({ assistantId }: ChatWindowProps) {
         setConversationId(response.conversation_id);
       }
 
-      const idx = streamingIndexRef.current;
-      if (idx !== null) {
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[idx] = {
-            role: "assistant",
-            content: response.content,
-            sources: response.sources,
-            model_used: response.model_used ?? undefined,
-          };
-          return updated;
-        });
+      const assistantMsg: MessageType = {
+        role: "assistant",
+        content: response.content,
+        sources: response.sources,
+        model_used: response.model_used,
+      };
+      // Update the optimistic placeholder bubble in-place instead of appending
+      setMessages((prev) => {
+        const idx = streamingIndexRef.current;
+        if (idx === null) return [...prev, assistantMsg];
+        const updated = [...prev];
+        updated[idx] = assistantMsg;
         streamingIndexRef.current = null;
-      }
+        return updated;
+      });
+      setConversationId((prev) => prev ?? response.conversation_id ?? null);
     } catch (err: any) {
-      setError(err?.message || "An error occurred while communicating with the assistant.");
+      console.error("Failed to send message:", err);
+      // Map well-known HTTP status codes to friendly messages
+      const status = err?.status ?? err?.response?.status;
+      if (status === 409) {
+        setError(
+          "This conversation has been handed off to a human agent. AI responses are paused."
+        );
+        setIsHandoff(true);
+      } else if (status === 429) {
+        setError("Your usage quota has been reached. Please try again in the next hour.");
+      } else if (status === 503) {
+        setError("The AI service is temporarily unavailable. Please try again shortly.");
+      } else {
+        setError(
+          err?.data?.detail ||
+            err?.message ||
+            "An error occurred while communicating with the assistant."
+        );
+      }
       // Remove placeholder bubble on REST failure
       setMessages((prev) => {
         const idx = streamingIndexRef.current;

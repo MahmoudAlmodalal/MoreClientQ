@@ -28,9 +28,10 @@ async def complete(messages: list, model: str, stream: bool = False):
         )
     except APIStatusError as e:
         logger.warning(f"OpenAI API error {e.status_code} for model {model}: {e}")
-        if e.status_code in (429, 503):
-            raise LLMUnavailableError(f"LLM service temporarily unavailable: {e}")
-        raise e
+        # Treat all provider-side HTTP errors as unavailability so the
+        # complete_with_fallback chain can always attempt the secondary model.
+        # 429 = rate-limited, 503 = overloaded, 500/502 = transient server error.
+        raise LLMUnavailableError(f"LLM service error (HTTP {e.status_code}): {e}")
     except asyncio.TimeoutError as e:
         logger.warning(f"OpenAI API timeout for model {model}: {e}")
         raise LLMUnavailableError("LLM request timed out")

@@ -48,7 +48,7 @@ export default async function AssistantChatPage({
 
       {/* Main Container */}
       <div className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 flex flex-col justify-center">
-        <ChatWindow assistantId={assistantId} />
+        <ChatWindow assistantId={assistantId} tenantId={tenantId} />
       </div>
     </div>
   );
