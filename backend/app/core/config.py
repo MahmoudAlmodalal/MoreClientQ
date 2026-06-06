@@ -8,6 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # Database Settings
     DATABASE_URL: str = "postgresql+asyncpg://user:pass@postgres:5432/platform"
+    DB_ECHO: bool = False
 
     # Redis Settings
     REDIS_URL: str = "redis://redis-service:6379"

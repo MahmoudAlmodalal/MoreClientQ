@@ -34,10 +34,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Define SQLAlchemy Declarative Base with common UUID helper methods in `backend/app/db/base.py`
-- [ ] T005 [P] Configure Redis connection pool and async caching client in `backend/app/core/redis.py`
-- [ ] T006 [P] Implement JWT token encoding, decoding, and verification functions in `backend/app/core/security.py`
-- [ ] T007 Setup global routing, exception handling, and middleware structures in `backend/app/main.py`
+- [X] T004 Define SQLAlchemy Declarative Base with common UUID helper methods in `backend/app/db/base.py`
+- [X] T005 [P] Configure Redis connection pool and async caching client in `backend/app/core/redis.py`
+- [X] T006 [P] Implement JWT token encoding, decoding, and verification functions in `backend/app/core/security.py`
+- [X] T007 Setup global routing, exception handling, and middleware structures in `backend/app/main.py`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -53,9 +53,9 @@
 - [ ] T008 [P] [US1] Write integration tests for registration endpoint in `backend/tests/api/test_registration.py`
 
 ### Implementation for User Story 1
-- [ ] T009 [P] [US1] Define SQLAlchemy database model for Tenant in `backend/app/models/tenant.py`
-- [ ] T010 [P] [US1] Define SQLAlchemy database model for User in `backend/app/models/user.py`
-- [ ] T011 [US1] Create Alembic migration script to create `tenants` and `users` tables in `backend/alembic/versions/`
+- [X] T009 [P] [US1] Define SQLAlchemy database model for Tenant in `backend/app/models/tenant.py`
+- [X] T010 [P] [US1] Define SQLAlchemy database model for User in `backend/app/models/user.py`
+- [X] T011 [US1] Create Alembic migration script to create `tenants` and `users` tables in `backend/alembic/versions/`
 - [ ] T012 [P] [US1] Implement helper CRUD services for Tenant and User setup in `backend/app/services/user.py`
 - [ ] T013 [US1] Implement registration endpoint (`POST /api/v1/auth/register`) in `backend/app/api/v1/endpoints/auth.py`
 
@@ -143,8 +143,8 @@
 
 ### Implementation for User Story 6
 - [ ] T028 [P] [US6] Define SQLAlchemy database model for Invitation in `backend/app/models/invitation.py`
-- [ ] T029 [P] [US6] Define SQLAlchemy database model for QuotaLog in `backend/app/models/quota_log.py`
-- [ ] T030 [US6] Create Alembic migration script creating `invitations` and `quota_logs` tables and enabling RLS in `backend/alembic/versions/`
+- [X] T029 [P] [US6] Define SQLAlchemy database model for QuotaLog in `backend/app/models/quota_log.py`
+- [ ] T030 [US6] Create Alembic migration script creating `invitations` table (with `quota_logs` already migrated) and enabling RLS in `backend/alembic/versions/`
 - [ ] T031 [US6] Implement invitation creation and acceptance logic in `backend/app/services/auth.py`
 - [ ] T032 [US6] Implement team endpoints (invite, list, update role, delete) in `backend/app/api/v1/endpoints/users.py`
 - [ ] T033 [US6] Implement accept invitation endpoint (`POST /api/v1/auth/invite/accept`) in `backend/app/api/v1/endpoints/auth.py`

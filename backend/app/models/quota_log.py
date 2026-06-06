@@ -1,5 +1,5 @@
 from app.db.session import Base, TenantMixin
-from sqlalchemy import Column, Integer, DateTime, text
+from sqlalchemy import Column, Integer, DateTime, text, String
 from sqlalchemy.dialects.postgresql import UUID
 
 class QuotaLog(Base, TenantMixin):
@@ -10,6 +10,10 @@ class QuotaLog(Base, TenantMixin):
         primary_key=True,
         server_default=text("gen_random_uuid()")
     )
-    period = Column(DateTime(timezone=True), nullable=False)
-    message_count = Column(Integer, nullable=False, default=0)
-    token_count = Column(Integer, nullable=False, default=0)
+    resource = Column(String(50), nullable=False)
+    amount = Column(Integer, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("now()")
+    )

@@ -51,14 +51,15 @@ def upgrade() -> None:
     op.create_index(op.f('ix_assistants_tenant_id'), 'assistants', ['tenant_id'], unique=False)
     op.create_table('quota_logs',
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
-    sa.Column('period', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('message_count', sa.Integer(), nullable=False),
-    sa.Column('token_count', sa.Integer(), nullable=False),
+    sa.Column('resource', sa.String(length=50), nullable=False),
+    sa.Column('amount', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('tenant_id', sa.UUID(), nullable=False),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_quota_logs_tenant_id'), 'quota_logs', ['tenant_id'], unique=False)
+    op.create_index('idx_quota_logs_tenant_created', 'quota_logs', ['tenant_id', sa.text('created_at DESC')], unique=False)
     op.create_table('users',
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
@@ -140,7 +141,7 @@ def upgrade() -> None:
         # Create tenant isolation policy
         op.execute(
             f"CREATE POLICY tenant_isolation ON {table} "
-            f"USING (tenant_id = current_setting('app.current_tenant_id', true)::UUID);"
+            f"USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);"
         )
 
 
@@ -166,6 +167,7 @@ def downgrade() -> None:
     op.drop_table('conversations')
     op.drop_index(op.f('ix_users_tenant_id'), table_name='users')
     op.drop_table('users')
+    op.drop_index('idx_quota_logs_tenant_created', table_name='quota_logs')
     op.drop_index(op.f('ix_quota_logs_tenant_id'), table_name='quota_logs')
     op.drop_table('quota_logs')
     op.drop_index(op.f('ix_assistants_tenant_id'), table_name='assistants')
