@@ -22,6 +22,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/api/v1/auth/refresh",
         "/api/v1/auth/invite/accept",
         "/api/v1/tenants/resolve/",
+        "/api/v1/public/",
     )
 
     def _requires_tenant_context(self, request: Request) -> bool:

@@ -26,9 +26,9 @@
 
 **Purpose**: Project initialization and design system setup
 
-- [ ] T001 Create project directories and empty placeholders per implementation plan structure
-- [ ] T002 [P] Configure Geist and Geist Mono fonts via `next/font/google` in `frontend/app/layout.tsx`
-- [ ] T003 [P] Configure custom CSS variables for design system tokens in `frontend/app/globals.css`
+- [X] T001 Create project directories and empty placeholders per implementation plan structure
+- [X] T002 [P] Configure Geist and Geist Mono fonts via `next/font/google` in `frontend/app/layout.tsx`
+- [X] T003 [P] Configure custom CSS variables for design system tokens in `frontend/app/globals.css`
 
 ---
 
@@ -38,10 +38,10 @@
 
 **⚠️ CRITICAL**: Must be completed before any user stories can be fully integrated
 
-- [ ] T004 Implement Redis IP-scoped rate limiter service helper in `backend/app/core/rate_limit.py`
-- [ ] T005 [P] Create FastAPI endpoint router file at `backend/app/api/v1/endpoints/public_chat.py`
-- [ ] T006 Register public chat route in `backend/app/api/v1/router.py`
-- [ ] T007 Implement the shell layout for the marketing page in `frontend/app/(marketing)/layout.tsx`
+- [X] T004 Implement Redis IP-scoped rate limiter service helper in `backend/app/core/rate_limit.py`
+- [X] T005 [P] Create FastAPI endpoint router file at `backend/app/api/v1/endpoints/public_chat.py`
+- [X] T006 Register public chat route in `backend/app/api/v1/router.py`
+- [X] T007 Implement the shell layout for the marketing page in `frontend/app/(marketing)/layout.tsx`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -57,17 +57,17 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [P] [US1] Write unit tests for FastAPI public chat endpoint in `backend/tests/api/test_public_chat.py`
-- [ ] T009 [P] [US1] Write Playwright E2E test for the 5-message demo cap and error fallbacks in `frontend/e2e/live-demo.spec.ts`
+- [X] T008 [P] [US1] Write unit tests for FastAPI public chat endpoint in `backend/tests/api/test_public_chat.py`
+- [X] T009 [P] [US1] Write Playwright E2E test for the 5-message demo cap and error fallbacks in `frontend/e2e/live-demo.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Implement public demo chat business logic (FAQ system prompt, openai streaming, 256 tokens max) in `backend/app/api/v1/endpoints/public_chat.py`
-- [ ] T011 [US1] Add Redis-based session and IP quota limits (5 messages/IP/24h) to `backend/app/api/v1/endpoints/public_chat.py`
-- [ ] T012 [P] [US1] Create frontend demo chat client-side utility in `frontend/lib/demo-chat.ts`
-- [ ] T013 [US1] Create the interactive Live Demo component in `frontend/components/landing/LiveDemo.tsx`
-- [ ] T014 [US1] Add support for error fallback state and quota limit exceeding (429 state) in `frontend/components/landing/LiveDemo.tsx`
-- [ ] T015 [US1] Write Jest component tests for `LiveDemo.tsx` in `frontend/components/landing/__tests__/LiveDemo.test.tsx`
+- [X] T010 [US1] Implement public demo chat business logic (FAQ system prompt, openai streaming, 256 tokens max) in `backend/app/api/v1/endpoints/public_chat.py`
+- [X] T011 [US1] Add Redis-based session and IP quota limits (5 messages/IP/24h) to `backend/app/api/v1/endpoints/public_chat.py`
+- [X] T012 [P] [US1] Create frontend demo chat client-side utility in `frontend/lib/demo-chat.ts`
+- [X] T013 [US1] Create the interactive Live Demo component in `frontend/components/landing/LiveDemo.tsx`
+- [X] T014 [US1] Add support for error fallback state and quota limit exceeding (429 state) in `frontend/components/landing/LiveDemo.tsx`
+- [X] T015 [US1] Write Jest component tests for `LiveDemo.tsx` in `frontend/components/landing/__tests__/LiveDemo.test.tsx`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -81,17 +81,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Write Playwright E2E tests for CTAs and email redirect in `frontend/e2e/conversion.spec.ts`
+- [X] T016 [P] [US2] Write Playwright E2E tests for CTAs and email redirect in `frontend/e2e/conversion.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Create Footer CTA component with email validation input in `frontend/components/landing/FooterCta.tsx`
-- [ ] T018 [P] [US2] Create Hero section component with primary/secondary CTAs in `frontend/components/landing/Hero.tsx`
-- [ ] T019 [P] [US2] Create Partner logo section component in `frontend/components/landing/LogoStrip.tsx`
-- [ ] T020 [P] [US2] Create Features Grid section component (6 capabilities) in `frontend/components/landing/Features.tsx`
-- [ ] T021 [P] [US2] Create How It Works section component (3 setup steps) in `frontend/components/landing/HowItWorks.tsx`
-- [ ] T022 [US2] Assemble static sections (Hero, LogoStrip, Features, HowItWorks, FooterCta) on the page in `frontend/app/(marketing)/page.tsx`
-- [ ] T023 [US2] Write Jest component tests for email validation and redirection logic in `frontend/components/landing/__tests__/FooterCta.test.tsx`
+- [X] T017 [P] [US2] Create Footer CTA component with email validation input in `frontend/components/landing/FooterCta.tsx`
+- [X] T018 [P] [US2] Create Hero section component with primary/secondary CTAs in `frontend/components/landing/Hero.tsx`
+- [X] T019 [P] [US2] Create Partner logo section component in `frontend/components/landing/LogoStrip.tsx`
+- [X] T020 [P] [US2] Create Features Grid section component (6 capabilities) in `frontend/components/landing/Features.tsx`
+- [X] T021 [P] [US2] Create How It Works section component (3 setup steps) in `frontend/components/landing/HowItWorks.tsx`
+- [X] T022 [US2] Assemble static sections (Hero, LogoStrip, Features, HowItWorks, FooterCta) on the page in `frontend/app/(marketing)/page.tsx`
+- [X] T023 [US2] Write Jest component tests for email validation and redirection logic in `frontend/components/landing/__tests__/FooterCta.test.tsx`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -105,10 +105,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Create Pricing table section component in `frontend/components/landing/Pricing.tsx`
-- [ ] T025 [P] [US3] Create Testimonials section component in `frontend/components/landing/Testimonials.tsx`
-- [ ] T026 [US3] Integrate Pricing and Testimonials components into `frontend/app/(marketing)/page.tsx`
-- [ ] T027 [US3] Write Jest component tests for pricing CTAs in `frontend/components/landing/__tests__/Pricing.test.tsx`
+- [X] T024 [P] [US3] Create Pricing table section component in `frontend/components/landing/Pricing.tsx`
+- [X] T025 [P] [US3] Create Testimonials section component in `frontend/components/landing/Testimonials.tsx`
+- [X] T026 [US3] Integrate Pricing and Testimonials components into `frontend/app/(marketing)/page.tsx`
+- [X] T027 [US3] Write Jest component tests for pricing CTAs in `frontend/components/landing/__tests__/Pricing.test.tsx`
 
 **Checkpoint**: User Stories 1, 2, and 3 should now be functional and testable together
 
@@ -122,14 +122,14 @@
 
 ### Tests for User Story 4
 
-- [ ] T028 [P] [US4] Write Playwright E2E tests for navigation redirects in `frontend/e2e/navigation.spec.ts`
+- [X] T028 [P] [US4] Write Playwright E2E tests for navigation redirects in `frontend/e2e/navigation.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T029 [P] [US4] Create sticky Navigation bar component with features/pricing/docs/login links in `frontend/components/landing/Nav.tsx`
-- [ ] T030 [P] [US4] Create Footer sitemap and social links component in `frontend/components/landing/Footer.tsx`
-- [ ] T031 [US4] Integrate Nav and Footer into the marketing shell in `frontend/app/(marketing)/layout.tsx`
-- [ ] T032 [US4] Write Jest component tests for Nav links in `frontend/components/landing/__tests__/Nav.test.tsx`
+- [X] T029 [P] [US4] Create sticky Navigation bar component with features/pricing/docs/login links in `frontend/components/landing/Nav.tsx`
+- [X] T030 [P] [US4] Create Footer sitemap and social links component in `frontend/components/landing/Footer.tsx`
+- [X] T031 [US4] Integrate Nav and Footer into the marketing shell in `frontend/app/(marketing)/layout.tsx`
+- [X] T032 [US4] Write Jest component tests for Nav links in `frontend/components/landing/__tests__/Nav.test.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -139,11 +139,11 @@
 
 **Purpose**: Polish design detail, optimize, audit, and finalize before release
 
-- [ ] T033 Add SEO metadata (Title, Description, OG, Twitter) via `generateMetadata()` in `frontend/app/(marketing)/page.tsx`
-- [ ] T034 [P] Configure global Tailwind CSS responsive breakpoints for 3-column features and 4-column pricing grids
-- [ ] T035 Add `IntersectionObserver` scroll-driven fade-up animations in `frontend/components/landing/` components
-- [ ] T036 Run performance audit (Lighthouse) to verify LCP < 1.5s and CLS < 0.05 targets
-- [ ] T037 Validate local setup using quickstart.md and run all tests (Jest + Playwright)
+- [X] T033 Add SEO metadata (Title, Description, OG, Twitter) via `generateMetadata()` in `frontend/app/(marketing)/page.tsx`
+- [X] T034 [P] Configure global Tailwind CSS responsive breakpoints for 3-column features and 4-column pricing grids
+- [X] T035 Add `IntersectionObserver` scroll-driven fade-up animations in `frontend/components/landing/` components
+- [X] T036 Run performance audit (Lighthouse) to verify LCP < 1.5s and CLS < 0.05 targets
+- [X] T037 Validate local setup using quickstart.md and run all tests (Jest + Playwright)
 
 ---
 

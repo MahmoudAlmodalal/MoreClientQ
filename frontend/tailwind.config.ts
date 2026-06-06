@@ -7,6 +7,14 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    screens: {
+      xs: "475px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     extend: {
       colors: {
         background: "var(--background)",
@@ -59,6 +67,20 @@ const config: Config = {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+        marketing: {
+          bg: "var(--marketing-bg)",
+          fg: "var(--marketing-fg)",
+          primary: "var(--marketing-primary)",
+          accent: "var(--marketing-accent)",
+          muted: "var(--marketing-muted)",
+          "muted-foreground": "var(--marketing-muted-foreground)",
+          border: "var(--marketing-border)",
+          card: "var(--marketing-card)",
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-geist-sans)", "var(--font-sans)", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
