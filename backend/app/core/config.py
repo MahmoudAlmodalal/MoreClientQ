@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     ]
     ALLOWED_ORIGIN_REGEX: str | None = "http://.*\\.localhost:3000"
 
+    # Public widget asset origin used in assistant embed snippets.
+    WIDGET_BASE_URL: str = "https://platform.com"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

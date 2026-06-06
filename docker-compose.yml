@@ -53,6 +53,7 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your_jwt_secret_key_here}
       - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
       - INTERNAL_SECRET=${INTERNAL_SECRET:-internal-service-secret}
+      - WIDGET_BASE_URL=${WIDGET_BASE_URL:-https://platform.com}
     depends_on:
       postgres:
         condition: service_healthy

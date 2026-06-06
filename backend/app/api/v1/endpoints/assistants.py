@@ -1,8 +1,9 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.config import settings
 from app.core.security import require_roles
 from app.schemas.assistant import AssistantCreate, AssistantUpdate, AssistantResponse
 from app.services import assistant as assistant_service
@@ -89,9 +90,8 @@ async def delete_assistant(
 @router.get("/{id}/embed")
 async def get_widget_embed_code(
     id: uuid.UUID,
-    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(require_roles("owner", "admin", "member")),
+    current_user: dict = Depends(require_roles("owner", "admin")),
 ):
     """
     Retrieve the widget embed code snippet for an assistant.
@@ -100,7 +100,11 @@ async def get_widget_embed_code(
     # Validate assistant existence
     await assistant_service.get_assistant(db=db, tenant_id=tenant_id, assistant_id=id)
     
-    # Construct script tag using the request base url
-    base_url = str(request.base_url).rstrip("/")
-    snippet = f'<script src="{base_url}/widget.js" data-assistant="{id}"></script>'
+    widget_base_url = settings.WIDGET_BASE_URL.rstrip("/")
+    snippet = (
+        f'<script src="{widget_base_url}/widget.js" '
+        f'data-assistant="{id}" '
+        'data-theme="light" '
+        'data-position="bottom-right"></script>'
+    )
     return {"snippet": snippet}

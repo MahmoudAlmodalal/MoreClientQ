@@ -108,15 +108,17 @@ export default function AssistantCard({
               </Button>
             </Link>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onShowEmbed(assistant)}
-            className="border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white px-3 flex items-center gap-1.5"
-          >
-            <Code className="h-3.5 w-3.5" />
-            <span>Embed</span>
-          </Button>
+          {canManage && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onShowEmbed(assistant)}
+              className="border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white px-3 flex items-center gap-1.5"
+            >
+              <Code className="h-3.5 w-3.5" />
+              <span>Embed</span>
+            </Button>
+          )}
         </div>
 
         {canManage && (
