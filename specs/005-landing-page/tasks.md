@@ -38,10 +38,10 @@
 
 **⚠️ CRITICAL**: Must be completed before any user stories can be fully integrated
 
-- [ ] T004 Implement Redis IP-scoped rate limiter service helper in `backend/app/core/rate_limit.py`
-- [ ] T005 [P] Create FastAPI endpoint router file at `backend/app/api/v1/endpoints/public_chat.py`
-- [ ] T006 Register public chat route in `backend/app/api/v1/router.py`
-- [ ] T007 Implement the shell layout for the marketing page in `frontend/app/(marketing)/layout.tsx`
+- [X] T004 Implement Redis IP-scoped rate limiter service helper in `backend/app/core/rate_limit.py`
+- [X] T005 [P] Create FastAPI endpoint router file at `backend/app/api/v1/endpoints/public_chat.py`
+- [X] T006 Register public chat route in `backend/app/api/v1/router.py`
+- [X] T007 Implement the shell layout for the marketing page in `frontend/app/(marketing)/layout.tsx`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -57,17 +57,17 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [P] [US1] Write unit tests for FastAPI public chat endpoint in `backend/tests/api/test_public_chat.py`
-- [ ] T009 [P] [US1] Write Playwright E2E test for the 5-message demo cap and error fallbacks in `frontend/e2e/live-demo.spec.ts`
+- [X] T008 [P] [US1] Write unit tests for FastAPI public chat endpoint in `backend/tests/api/test_public_chat.py`
+- [X] T009 [P] [US1] Write Playwright E2E test for the 5-message demo cap and error fallbacks in `frontend/e2e/live-demo.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Implement public demo chat business logic (FAQ system prompt, openai streaming, 256 tokens max) in `backend/app/api/v1/endpoints/public_chat.py`
-- [ ] T011 [US1] Add Redis-based session and IP quota limits (5 messages/IP/24h) to `backend/app/api/v1/endpoints/public_chat.py`
-- [ ] T012 [P] [US1] Create frontend demo chat client-side utility in `frontend/lib/demo-chat.ts`
-- [ ] T013 [US1] Create the interactive Live Demo component in `frontend/components/landing/LiveDemo.tsx`
-- [ ] T014 [US1] Add support for error fallback state and quota limit exceeding (429 state) in `frontend/components/landing/LiveDemo.tsx`
-- [ ] T015 [US1] Write Jest component tests for `LiveDemo.tsx` in `frontend/components/landing/__tests__/LiveDemo.test.tsx`
+- [X] T010 [US1] Implement public demo chat business logic (FAQ system prompt, openai streaming, 256 tokens max) in `backend/app/api/v1/endpoints/public_chat.py`
+- [X] T011 [US1] Add Redis-based session and IP quota limits (5 messages/IP/24h) to `backend/app/api/v1/endpoints/public_chat.py`
+- [X] T012 [P] [US1] Create frontend demo chat client-side utility in `frontend/lib/demo-chat.ts`
+- [X] T013 [US1] Create the interactive Live Demo component in `frontend/components/landing/LiveDemo.tsx`
+- [X] T014 [US1] Add support for error fallback state and quota limit exceeding (429 state) in `frontend/components/landing/LiveDemo.tsx`
+- [X] T015 [US1] Write Jest component tests for `LiveDemo.tsx` in `frontend/components/landing/__tests__/LiveDemo.test.tsx`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
