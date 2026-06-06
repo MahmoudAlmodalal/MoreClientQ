@@ -122,11 +122,11 @@
 **Independent Test**: Call admin-only endpoint as member user, verify request fails with `403 Forbidden`.
 
 ### Tests for User Story 5
-- [ ] T024 [P] [US5] Write integration tests for role check dependencies in `backend/tests/api/test_rbac.py`
+- [X] T024 [P] [US5] Write integration tests for role check dependencies in `backend/tests/api/test_rbac.py`
 
 ### Implementation for User Story 5
-- [ ] T025 [US5] Implement FastAPI Role verification helper dependencies in `backend/app/core/security.py`
-- [ ] T026 [US5] Apply static Role requirements to existing User API endpoints in `backend/app/api/v1/endpoints/users.py`
+- [X] T025 [US5] Implement FastAPI Role verification helper dependencies in `backend/app/core/security.py`
+- [X] T026 [US5] Apply static Role requirements to existing User API endpoints in `backend/app/api/v1/endpoints/users.py`
 
 **Checkpoint**: Static RBAC restrictions enforce fine-grained access control.
 

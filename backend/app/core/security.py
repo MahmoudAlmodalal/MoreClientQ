@@ -118,6 +118,34 @@ async def get_current_user(
     return payload
 
 
+def require_roles(*allowed_roles: str):
+    """FastAPI dependency factory: returns a dependency that checks the current user's role.
+
+    Usage:
+        @router.get("/admin-only")
+        async def admin_endpoint(current_user: dict = Depends(require_roles("admin", "owner"))):
+            ...
+    """
+    if not allowed_roles:
+        async def _deny_all(current_user: dict = Depends(get_current_user)) -> dict:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: no roles granted access"
+            )
+        return _deny_all
+
+    async def _role_checker(current_user: dict = Depends(get_current_user)) -> dict:
+        user_role = current_user.get("role", "")
+        if user_role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: insufficient permissions"
+            )
+        return current_user
+
+    return _role_checker
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against its hash."""
     try:
