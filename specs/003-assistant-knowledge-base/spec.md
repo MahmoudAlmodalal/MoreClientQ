@@ -51,10 +51,10 @@ A tenant administrator uploads documents (PDF, Word, or plain text files) or sub
 
 1. **Given** an admin on the Knowledge Base page for an assistant, **When** they upload a PDF, DOCX, or TXT file, **Then** the document appears in the list with a "pending" status that transitions to "processing" and ultimately "ready" upon successful ingestion.
 2. **Given** an admin submitting a URL for ingestion, **When** they provide a valid, publicly accessible web URL and submit, **Then** the URL is ingested as a document and appears in the list with the same status lifecycle.
-6. **Given** an admin submitting a URL for ingestion, **When** the URL is unreachable, returns a non-200 HTTP status, or redirects to a login/authentication page, **Then** the submission is rejected immediately with a descriptive error message before any background task is queued.
-3. **Given** a document that encounters an error during ingestion, **When** the processing fails, **Then** the document status shows "failed" with a human-readable error message.
-4. **Given** an admin uploading a file that exceeds the allowed size limit, **When** they attempt to submit, **Then** an error is shown before upload begins explaining the size restriction.
-5. **Given** an admin uploading a file of an unsupported type, **When** they attempt to submit, **Then** a clear error message explains which file types are accepted.
+3. **Given** an admin submitting a URL for ingestion, **When** the URL is unreachable, returns a non-200 HTTP status, or redirects to a login/authentication page, **Then** the submission is rejected immediately with a descriptive error message before any background task is queued.
+4. **Given** a document that encounters an error during ingestion, **When** the processing fails, **Then** the document status shows "failed" with a human-readable error message.
+5. **Given** an admin uploading a file that exceeds the allowed size limit, **When** they attempt to submit, **Then** an error is shown before upload begins explaining the size restriction.
+6. **Given** an admin uploading a file of an unsupported type, **When** they attempt to submit, **Then** a clear error message explains which file types are accepted.
 
 ---
 

@@ -32,10 +32,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Implement custom recursive character chunker in `backend/app/services/rag/chunker.py`
-- [ ] T005 [P] Create MinIO client utility helper in `backend/app/services/storage.py`
-- [ ] T006 [P] Define quota configuration constants in `backend/app/core/quotas.py`
-- [ ] T007 Define Pydantic request/response schemas for assistants and documents in `backend/app/schemas/`
+- [X] T004 Implement custom recursive character chunker in `backend/app/services/rag/chunker.py`
+- [X] T005 [P] Create MinIO client utility helper in `backend/app/services/storage.py`
+- [X] T006 [P] Define quota configuration constants in `backend/app/core/quotas.py`
+- [X] T007 Define Pydantic request/response schemas for assistants and documents in `backend/app/schemas/`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -45,19 +45,20 @@
 
 **Goal**: Enable tenant administrators to create, read, update, and delete custom AI assistants.
 
-**Independent Test**: Create an assistant through the API or UI, edit its fields, check that leaving the name blank displays a validation error, and delete it (asserting deletion is blocked if there are active conversations).
+**Independent Test**: Create an assistant through the API or UI, edit its fields, check that leaving the name blank displays a validation error, delete it with no active conversations, verify associated knowledge base records, MinIO files, and ChromaDB vectors are removed, and assert deletion is blocked if there are active conversations.
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Create API tests for assistants management in `backend/tests/api/test_assistants.py`
+- [ ] T008 [P] [US1] Create API tests for assistants management, active conversation deletion guard, and assistant deletion cleanup of documents/indexed content in `backend/tests/api/test_assistants.py`
 
 ### Implementation for User Story 1
 
 - [ ] T009 [US1] Implement assistant repository/service methods or DB operations in `backend/app/services/assistant.py`
 - [ ] T010 [US1] Implement assistant endpoints (POST, GET, PATCH, DELETE) in `backend/app/api/v1/endpoints/assistants.py` and register in `backend/app/api/v1/router.py`
 - [ ] T011 [US1] Implement active conversation check guard during assistant deletion in `backend/app/api/v1/endpoints/assistants.py`
-- [ ] T012 [P] [US1] Create frontend components for assistants cards and assistant creation/editing forms in `frontend/components/assistants/`
-- [ ] T013 [US1] Create frontend dashboard assistants page in `frontend/app/(dashboard)/dashboard/assistants/page.tsx`
+- [ ] T012 [US1] Implement assistant deletion cascade cleanup for associated document rows, MinIO objects, and ChromaDB vectors in `backend/app/api/v1/endpoints/assistants.py` and supporting services
+- [ ] T013 [P] [US1] Create frontend components for assistants cards and assistant creation/editing forms in `frontend/components/assistants/`
+- [ ] T014 [US1] Create frontend dashboard assistants page in `frontend/app/(dashboard)/dashboard/assistants/page.tsx`
 
 **Checkpoint**: At this point, User Story 1 is fully functional and testable independently.
 
@@ -71,16 +72,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T014 [P] [US2] Create API tests for document upload and ingestion in `backend/tests/api/test_documents.py`
+- [ ] T015 [P] [US2] Create API tests for document upload, URL ingestion, status polling, duplicate filename rejection, quota rejection, file validation, and structured ingestion failure logging in `backend/tests/api/test_documents.py`
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Implement background Celery task for document ingestion (text extraction, chunking, embedding, vector database upsert) in `backend/app/tasks/ingest.py`
-- [ ] T016 [US2] Implement synchronous pre-flight URL validation in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T017 [US2] Implement document creation and file upload logic to MinIO/DB, checking duplicate filename and quota restrictions, in `backend/app/api/v1/endpoints/documents.py` and register in `backend/app/api/v1/router.py`
-- [ ] T018 [US2] Implement structured logging of ingestion failures in `backend/app/tasks/ingest.py`
-- [ ] T019 [P] [US2] Create file upload and URL ingest components in `frontend/components/knowledge-base/`
-- [ ] T020 [US2] Create knowledge base page view layout in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
+- [ ] T016 [US2] Implement background Celery task for document ingestion (text extraction, chunking, embedding, vector database upsert) in `backend/app/tasks/ingest.py`
+- [ ] T017 [US2] Implement synchronous pre-flight URL validation in `backend/app/api/v1/endpoints/documents.py`
+- [ ] T018 [US2] Implement document creation and file upload logic to MinIO/DB, checking duplicate filename and quota restrictions, in `backend/app/api/v1/endpoints/documents.py` and register in `backend/app/api/v1/router.py`
+- [ ] T019 [US2] Implement polling endpoint for document status in `backend/app/api/v1/endpoints/documents.py`
+- [ ] T020 [US2] Implement structured logging of ingestion failures in `backend/app/tasks/ingest.py`
+- [ ] T021 [P] [US2] Create file upload, URL ingest, and status polling components in `frontend/components/knowledge-base/`
+- [ ] T022 [US2] Create knowledge base page view layout in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
 
 **Checkpoint**: At this point, User Stories 1 and 2 are fully functional and integrated.
 
@@ -94,15 +96,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] Add list and delete document tests in `backend/tests/api/test_documents.py`
+- [ ] T023 [P] [US3] Add list and delete document tests, including deletion of a processing document and 30-second index removal validation, in `backend/tests/api/test_documents.py`
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Implement list documents endpoint in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T023 [US3] Implement delete document endpoint (removing files from MinIO, deleting vectors from ChromaDB, updating DB) in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T024 [US3] Implement polling endpoint for document status in `backend/app/api/v1/endpoints/documents.py`
-- [ ] T025 [P] [US3] Create document list polling component in `frontend/components/knowledge-base/document-list.tsx`
-- [ ] T026 [US3] Integrate document listing and deletion in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
+- [ ] T024 [US3] Implement list documents endpoint in `backend/app/api/v1/endpoints/documents.py`
+- [ ] T025 [US3] Implement delete document endpoint (removing files from MinIO, deleting vectors from ChromaDB, updating DB, and cancelling in-flight ingestion when processing) in `backend/app/api/v1/endpoints/documents.py`
+- [ ] T026 [P] [US3] Create document list component in `frontend/components/knowledge-base/document-list.tsx`
+- [ ] T027 [US3] Integrate document listing and deletion in `frontend/app/(dashboard)/dashboard/assistants/[id]/knowledge-base/page.tsx`
 
 **Checkpoint**: Document management and listing is fully operational.
 
@@ -116,9 +117,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T027 [P] [US4] Implement embed code endpoint returning widget script in `backend/app/api/v1/endpoints/assistants.py`
-- [ ] T028 [US4] Add embed code modal and clipboard copy function in `frontend/components/assistants/embed-code-modal.tsx`
-- [ ] T029 [US4] Integrate embed code modal trigger in `frontend/components/assistants/assistant-card.tsx`
+- [ ] T028 [P] [US4] Implement embed code endpoint returning widget script in `backend/app/api/v1/endpoints/assistants.py`
+- [ ] T029 [US4] Add embed code modal and clipboard copy function in `frontend/components/assistants/embed-code-modal.tsx`
+- [ ] T030 [US4] Integrate embed code modal trigger in `frontend/components/assistants/assistant-card.tsx`
 
 **Checkpoint**: All user stories are independently functional.
 
@@ -128,9 +129,12 @@
 
 **Purpose**: Improvements that affect multiple user stories.
 
-- [ ] T030 [P] Verify RLS database isolation and tenant restrictions for all new endpoints using testing scripts
-- [ ] T031 Run quickstart.md validation to ensure migrations and service setups run smoothly
-- [ ] T032 [P] Perform manual user journey checks on local environment
+- [ ] T031 [P] Verify RLS database isolation and tenant restrictions for all new endpoints using testing scripts
+- [ ] T032 [P] Verify existing Redis token-bucket rate limits apply to assistant and document endpoints at Nginx and FastAPI middleware layers, including HTTP 429 responses
+- [ ] T033 [P] Add concurrency tests or integration checks proving assistant/document quota enforcement remains atomic under simultaneous create requests
+- [ ] T034 [P] Validate performance thresholds for 10 MB ingestion within 3 minutes, status freshness within 5 seconds, document index removal within 30 seconds, and embed code retrieval within 1 second
+- [ ] T035 Run quickstart.md validation to ensure migrations and service setups run smoothly
+- [ ] T036 [P] Perform manual user journey checks on local environment
 
 ---
 
@@ -151,7 +155,7 @@
 
 - Phase 1 tasks (T001, T002) can run in parallel.
 - Phase 2 tasks (T005, T006) can run in parallel.
-- Test tasks (T008, T012, T014, T019, T021, T025, T027) can run in parallel with respective logic.
+- Test and UI tasks (T008, T013, T015, T021, T023, T026, T028) can run in parallel with respective logic.
 - Developer A can build assistants UI (US1) while Developer B builds the backend endpoints.
 
 ---
@@ -161,7 +165,7 @@
 ```bash
 # Implement the API tests and frontend UI simultaneously:
 Task: T008 [P] [US1] Create API tests for assistants management in backend/tests/api/test_assistants.py
-Task: T012 [P] [US1] Create frontend components for assistants cards and assistant creation/editing forms in frontend/components/assistants/
+Task: T013 [P] [US1] Create frontend components for assistants cards and assistant creation/editing forms in frontend/components/assistants/
 ```
 
 ---
@@ -180,5 +184,5 @@ Task: T012 [P] [US1] Create frontend components for assistants cards and assista
 1. Complete Setup + Foundational -> Foundation ready.
 2. Add User Story 1 -> Test independently -> Deploy/Demo (MVP!).
 3. Add User Story 2 -> Test document upload and URL ingest -> Deploy/Demo.
-4. Add User Story 3 -> Test polling status, list view, and document deletion.
+4. Add User Story 3 -> Test list view and document deletion.
 5. Add User Story 4 -> Test widget code copying.

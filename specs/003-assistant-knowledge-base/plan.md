@@ -34,9 +34,10 @@ Admins can upload files (PDF, DOCX, TXT) or submit public URLs. Files are stored
 - Strictly enforce Row-Level Security (RLS) at the PostgreSQL database level on all tenant-scoped tables.
 - Use dedicated ChromaDB collections (`tenant_{uuid}`) per tenant to isolate vector data.
 - Enforce tenant quota limits at the API layer (e.g. Starter: max 1 assistant, 5 documents).
-- File size limit of 50 MB per upload.
+- File size limit of 10 MB per upload.
 - Block assistant deletion if there are active conversations, displaying the active count.
 - Enforce unique filenames per assistant's knowledge base.
+- Enforce Redis token-bucket API rate limits through existing Nginx and FastAPI middleware for all assistant and document endpoints.
 
 **Scale/Scope**: Multitenant SaaS architecture supporting thousands of isolated tenants with Starter, Pro, Business, and Enterprise tiers.
 
@@ -47,7 +48,7 @@ Admins can upload files (PDF, DOCX, TXT) or submit public URLs. Files are stored
 - **Principle I: Multi-Tenancy RLS Isolation**: **PASSED**. The `Assistant` and `Document` tables extend `Base` and `TenantMixin` which ensures the `tenant_id` column is present. The RLS policies exist on both tables. All queries set `app.current_tenant_id` context.
 - **Principle II: Per-Tenant Vector Store Isolation**: **PASSED**. chroma_client uses `tenant_{uuid}` as collection names. Upserts include the `tenant_id` in document metadata for multi-level filtering validation.
 - **Principle III: Subdomain-Based Resolution & JWT**: **PASSED**. Frontend middleware resolves subdomain to tenant slug, extracts/validates tenant slug, passes `X-Tenant-ID` header. The backend validates JWT content.
-- **Principle IV: Resource Quota Enforcement**: **PASSED**. API endpoints check tenant-specific limits from `app/core/quotas.py` prior to creation.
+- **Principle IV: Resource Quota Enforcement**: **PASSED**. API endpoints check tenant-specific limits from `app/core/quotas.py` prior to creation, and assistant/document routes remain behind the existing Redis token-bucket rate limits at the Nginx and FastAPI middleware layers.
 - **Principle V: Decoupled Asynchronous Processing**: **PASSED**. Long-running extraction and indexing tasks are delegated to Celery workers on the `ingestion` queue.
 
 ## Project Structure
