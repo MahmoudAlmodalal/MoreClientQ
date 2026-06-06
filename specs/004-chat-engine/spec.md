@@ -90,7 +90,8 @@ As a tenant customer support agent or supervisor, I want the system to flag a co
 
 - **Conversation**:
   - Represents a single chat thread between a user and an assistant.
-  - Key attributes: `id` (UUID), `tenant_id` (UUID, maps to Tenant), `assistant_id` (UUID, maps to Assistant), `status` (enum: `bot`, `handoff`), `title` (string), `created_at`, `updated_at`.
+  - Key attributes: `id` (UUID), `tenant_id` (UUID, maps to Tenant), `assistant_id` (UUID, maps to Assistant), `status` (enum: `bot`, `handoff`, `closed`), `title` (string), `created_at`, `updated_at`.
+  - State lifecycle: `bot` (active AI conversation) → `handoff` (human agent takeover, AI suspended) → `closed` (conversation ended by either party). Conversations also transition directly from `bot` to `closed` when ended without a handoff.
 - **Message**:
   - Represents an individual message within a conversation.
   - Key attributes: `id` (UUID), `tenant_id` (UUID), `conversation_id` (UUID, maps to Conversation), `role` (enum: `user`, `assistant`, `system`), `content` (text), `tokens_used` (integer), `created_at`.
@@ -114,3 +115,4 @@ As a tenant customer support agent or supervisor, I want the system to flag a co
 - **Assumption 2**: Users have valid JWTs obtained from the authentication service, containing the tenant claims.
 - **Assumption 3**: Standard upstream LLM APIs are accessible and functional, supporting both primary and secondary fallback models from the same provider.
 - **Assumption 4**: Redis is available for rate limiting, Pub/Sub, and token bucket tracking.
+- **Assumption 5**: Each tenant record carries a configurable hourly token quota limit (e.g., a `token_quota_hourly` field on the `tenants` table or a plan-level default in application configuration). The `quota_service` reads this limit at runtime to determine whether a chat request should be allowed.
