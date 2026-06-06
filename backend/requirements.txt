@@ -20,6 +20,8 @@ celery==5.3.6
 
 # Vector Store Client
 chromadb==0.4.24
+numpy>=1.22.4,<2.0
+
 
 # Object Storage
 minio>=7.2.0

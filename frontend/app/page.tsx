@@ -55,13 +55,16 @@ export default function Home() {
 
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition duration-200"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Go to Dashboard
-            </Link>
+            <div className="flex items-center gap-4">
+              {userEmail && <span className="text-xs text-slate-400 font-semibold">{userEmail}</span>}
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition duration-200"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Go to Dashboard
+              </Link>
+            </div>
           ) : (
             <>
               <Link

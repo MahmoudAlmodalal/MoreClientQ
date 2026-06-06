@@ -49,16 +49,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Create API tests for assistants management, active conversation deletion guard, and assistant deletion cleanup of documents/indexed content in `backend/tests/api/test_assistants.py`
+- [X] T008 [P] [US1] Create API tests for assistants management, active conversation deletion guard, and assistant deletion cleanup of documents/indexed content in `backend/tests/api/test_assistants.py`
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Implement assistant repository/service methods or DB operations in `backend/app/services/assistant.py`
-- [ ] T010 [US1] Implement assistant endpoints (POST, GET, PATCH, DELETE) in `backend/app/api/v1/endpoints/assistants.py` and register in `backend/app/api/v1/router.py`
-- [ ] T011 [US1] Implement active conversation check guard during assistant deletion in `backend/app/api/v1/endpoints/assistants.py`
-- [ ] T012 [US1] Implement assistant deletion cascade cleanup for associated document rows, MinIO objects, and ChromaDB vectors in `backend/app/api/v1/endpoints/assistants.py` and supporting services
-- [ ] T013 [P] [US1] Create frontend components for assistants cards and assistant creation/editing forms in `frontend/components/assistants/`
-- [ ] T014 [US1] Create frontend dashboard assistants page in `frontend/app/(dashboard)/dashboard/assistants/page.tsx`
+- [X] T009 [US1] Implement assistant repository/service methods or DB operations in `backend/app/services/assistant.py`
+- [X] T010 [US1] Implement assistant endpoints (POST, GET, PATCH, DELETE) in `backend/app/api/v1/endpoints/assistants.py` and register in `backend/app/api/v1/router.py`
+- [X] T011 [US1] Implement active conversation check guard during assistant deletion in `backend/app/api/v1/endpoints/assistants.py`
+- [X] T012 [US1] Implement assistant deletion cascade cleanup for associated document rows, MinIO objects, and ChromaDB vectors in `backend/app/api/v1/endpoints/assistants.py` and supporting services
+- [X] T013 [P] [US1] Create frontend components for assistants cards and assistant creation/editing forms in `frontend/components/assistants/`
+- [X] T014 [US1] Create frontend dashboard assistants page in `frontend/app/(dashboard)/dashboard/assistants/page.tsx`
 
 **Checkpoint**: At this point, User Story 1 is fully functional and testable independently.
 

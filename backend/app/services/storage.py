@@ -1,28 +1,42 @@
 import io
 import logging
-from minio import Minio
-from minio.error import S3Error
+from datetime import timedelta
+from typing import Any
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 class StorageService:
     def __init__(self):
-        self.client = Minio(
-            endpoint=settings.MINIO_ENDPOINT,
-            access_key=settings.MINIO_ACCESS_KEY,
-            secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_SECURE
-        )
+        self._client: Any | None = None
         self.bucket_name = settings.MINIO_BUCKET_NAME
-        self._ensure_bucket_exists()
+
+    @property
+    def client(self) -> Any:
+        if self._client is None:
+            try:
+                from minio import Minio
+            except ImportError as exc:
+                raise RuntimeError(
+                    "MinIO support requires the 'minio' package. Install backend requirements."
+                ) from exc
+
+            self._client = Minio(
+                endpoint=settings.MINIO_ENDPOINT,
+                access_key=settings.MINIO_ACCESS_KEY,
+                secret_key=settings.MINIO_SECRET_KEY,
+                secure=settings.MINIO_SECURE
+            )
+            self._ensure_bucket_exists()
+        return self._client
 
     def _ensure_bucket_exists(self):
         try:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
                 logger.info(f"Created MinIO bucket: {self.bucket_name}")
-        except S3Error as e:
+        except Exception as e:
             logger.error(f"Failed to ensure MinIO bucket exists: {e}")
             raise e
 
@@ -40,7 +54,7 @@ class StorageService:
                 content_type=content_type
             )
             return object_name
-        except S3Error as e:
+        except Exception as e:
             logger.error(f"Failed to upload object {object_name}: {e}")
             raise e
 
@@ -58,7 +72,7 @@ class StorageService:
             finally:
                 response.close()
                 response.release_conn()
-        except S3Error as e:
+        except Exception as e:
             logger.error(f"Failed to get object {object_name}: {e}")
             raise e
 
@@ -71,7 +85,7 @@ class StorageService:
                 bucket_name=self.bucket_name,
                 object_name=object_name
             )
-        except S3Error as e:
+        except Exception as e:
             logger.error(f"Failed to delete object {object_name}: {e}")
             raise e
 
@@ -91,7 +105,7 @@ class StorageService:
                     bucket_name=self.bucket_name,
                     object_name=obj.object_name
                 )
-        except S3Error as e:
+        except Exception as e:
             logger.error(f"Failed to delete prefix {prefix}: {e}")
             raise e
 
@@ -103,7 +117,7 @@ class StorageService:
             return self.client.presigned_get_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
-                expires=expires_seconds
+                expires=timedelta(seconds=expires_seconds)
             )
         except Exception as e:
             logger.error(f"Failed to generate presigned URL for {object_name}: {e}")

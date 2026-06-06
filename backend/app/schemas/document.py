@@ -1,13 +1,17 @@
 from pydantic import BaseModel, ConfigDict, HttpUrl
 from uuid import UUID
 from datetime import datetime
+from typing import Literal
+
+DocumentFileType = Literal["pdf", "docx", "txt", "url"]
+DocumentStatus = Literal["pending", "processing", "ready", "failed"]
 
 class DocumentResponse(BaseModel):
     id: UUID
     assistant_id: UUID
     filename: str
-    file_type: str
-    status: str
+    file_type: DocumentFileType
+    status: DocumentStatus
     chunk_count: int | None
     error_message: str | None
     created_at: datetime
@@ -16,7 +20,7 @@ class DocumentResponse(BaseModel):
 
 class DocumentStatusResponse(BaseModel):
     id: UUID
-    status: str
+    status: DocumentStatus
     chunk_count: int | None
     error_message: str | None
 

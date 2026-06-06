@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { getCookie, eraseCookie, decodeJwt } from "@/lib/api";
-import { Bot, LogOut, ShieldCheck, Database, MessageSquare, FileText, Send, User, Sparkles, Layers, Cpu } from "lucide-react";
+import { Bot, LogOut, ShieldCheck, FileText, Send, User, Sparkles, Layers, Cpu } from "lucide-react";
+import Link from "next/link";
 
 interface MockMessage {
   sender: "user" | "assistant";
@@ -230,10 +231,15 @@ export default function DashboardPage() {
 
           {/* Section: AI Assistants */}
           <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Cpu className="h-5 w-5 text-purple-400" />
-              Active AI Assistants
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Cpu className="h-5 w-5 text-purple-400" />
+                Active AI Assistants
+              </h3>
+              <Link href="/dashboard/assistants" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline transition">
+                Manage Assistants &rarr;
+              </Link>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { name: "Document Analyst", desc: "Performs semantics search queries on ingested PDFs.", role: "Data Retrieval" },
