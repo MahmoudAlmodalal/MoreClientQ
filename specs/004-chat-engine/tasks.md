@@ -73,15 +73,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Create `backend/app/services/quota_service.py`:
+- [X] T010 [P] [US1] Create `backend/app/services/quota_service.py`:
   - `async check_quota(tenant_id, required_tokens=0) -> bool` — reads Redis key `quota:{tenant_id}:{YYYYMMDDHH}` and compares to the tenant's hourly limit (read from `tenants.token_quota_hourly` DB column, falling back to `config.DEFAULT_HOURLY_TOKEN_QUOTA`); returns `False` if at or above limit
   - `async consume_quota(tenant_id, tokens_used: int)` — atomically `INCRBY` the Redis quota key and sets a 2-hour TTL
   - `async get_remaining_quota(tenant_id) -> int` — returns remaining budget for current hour
-- [ ] T011 [P] [US1] Create `backend/app/services/llm_service.py`:
+- [X] T011 [P] [US1] Create `backend/app/services/llm_service.py`:
   - `async complete(messages, model, stream=False)` — calls `AsyncOpenAI` with the given model; on `APIStatusError` (429/503) or `asyncio.TimeoutError`, raises `LLMUnavailableError`
   - `async complete_with_fallback(messages, stream=False)` — tries `LLM_PRIMARY_MODEL` first; on failure, tries `LLM_FALLBACK_MODEL`; on double failure raises `LLMUnavailableError`
   - Define `LLMUnavailableError(Exception)` custom exception
-- [ ] T012 [US1] Create `backend/app/services/chat_service.py` with `async chat(tenant_id, assistant_id, conversation_id, user_content) -> ChatResponse`:
+- [X] T012 [US1] Create `backend/app/services/chat_service.py` with `async chat(tenant_id, assistant_id, conversation_id, user_content) -> ChatResponse`:
   1. Validate assistant belongs to tenant (DB query with RLS context)
   2. Create or load conversation record
   3. Pre-flight `quota_service.check_quota(tenant_id)`; raise `QuotaExceededError` if failed
@@ -93,7 +93,7 @@
   9. Persist assistant `Message` record (role="assistant") with `tokens_used`, `sources`, `latency_ms`
   10. Call `quota_service.consume_quota(tenant_id, tokens_used)`
   11. Return `ChatResponse`
-- [ ] T013 [US1] Create `backend/app/api/v1/endpoints/chat.py`:
+- [X] T013 [US1] Create `backend/app/api/v1/endpoints/chat.py`:
   - `POST /` route mapped to `POST /api/v1/chat` via the router
   - Validate JWT + `X-Tenant-ID` header via existing auth dependency
   - Parse `ChatRequest` body
@@ -101,15 +101,15 @@
   - Call `chat_service.chat(...)` and return `ChatResponse`
   - Handle `QuotaExceededError` → 429, `AssistantNotFoundError` → 404, `LLMUnavailableError` → 503, `ConversationInHandoffError` → 409
   - Add `no-store` Cache-Control header to response to prevent upstream caching of sensitive conversation data
-- [ ] T014 [US1] Register the new chat router in `backend/app/api/v1/router.py`: `router.include_router(chat_router, prefix="/chat", tags=["chat"])`
-- [ ] T015 [P] [US1] Create Next.js chat page at `frontend/app/dashboard/assistants/[id]/chat/page.tsx`:
+- [X] T014 [US1] Register the new chat router in `backend/app/api/v1/router.py`: `router.include_router(chat_router, prefix="/chat", tags=["chat"])`
+- [X] T015 [P] [US1] Create Next.js chat page at `frontend/app/dashboard/assistants/[id]/chat/page.tsx`:
   - Server component that renders the `ChatWindow` client component
   - Pass `assistantId` from route params, `tenantId` from session
-- [ ] T016 [P] [US1] Create `frontend/lib/chat-api.ts` with:
+- [X] T016 [P] [US1] Create `frontend/lib/chat-api.ts` with:
   - `sendMessage(assistantId, conversationId, message): Promise<ChatResponse>` — calls `POST /api/v1/chat`
   - `createWebSocket(assistantId, tenantId, token): WebSocket` — builds WS URL with query params
-- [ ] T017 [P] [US1] Create `frontend/components/chat/MessageBubble.tsx` — renders a single message with role-based styling (`user` right-aligned, `assistant` left-aligned with source footnotes)
-- [ ] T018 [US1] Create `frontend/components/chat/ChatWindow.tsx` — client component with:
+- [X] T017 [P] [US1] Create `frontend/components/chat/MessageBubble.tsx` — renders a single message with role-based styling (`user` right-aligned, `assistant` left-aligned with source footnotes)
+- [X] T018 [US1] Create `frontend/components/chat/ChatWindow.tsx` — client component with:
   - Message list using `MessageBubble`
   - Text input + send button
   - Calls `chat-api.sendMessage` on submit and appends response to message list

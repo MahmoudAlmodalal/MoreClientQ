@@ -60,6 +60,16 @@ class RedisCache:
             logger.error(f"Redis incr error for key {key}: {e}")
             return None
 
+    async def incrby(self, key: str, amount: int, expire: int | None = None) -> int | None:
+        try:
+            value = await self.client.incrby(key, amount)
+            if expire is not None:
+                await self.client.expire(key, expire)
+            return int(value)
+        except Exception as e:
+            logger.error(f"Redis incrby error for key {key}: {e}")
+            return None
+
     async def ping(self) -> tuple[bool, float, str | None]:
         start_time = time.perf_counter()
         try:

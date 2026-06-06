@@ -46,6 +46,18 @@ def upgrade() -> None:
     op.execute("ALTER TABLE conversations FORCE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE messages ENABLE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE messages FORCE ROW LEVEL SECURITY;")
+
+    # 5a. Align message validation with the chat data model
+    op.create_check_constraint(
+        'check_messages_role',
+        'messages',
+        sa.text("role IN ('user', 'assistant', 'system')")
+    )
+    op.create_check_constraint(
+        'check_messages_tokens_used_nonnegative',
+        'messages',
+        sa.text("COALESCE(tokens_used, 0) >= 0")
+    )
     
     # 6. Create/Update FOR ALL RLS policies on conversations and messages using tenant_id
     op.execute("DROP POLICY IF EXISTS tenant_isolation ON conversations;")
@@ -81,6 +93,9 @@ def downgrade() -> None:
     # Drop policies
     op.execute("DROP POLICY IF EXISTS tenant_isolation ON messages;")
     op.execute("DROP POLICY IF EXISTS tenant_isolation ON conversations;")
+
+    op.drop_constraint('check_messages_tokens_used_nonnegative', 'messages', type_='check')
+    op.drop_constraint('check_messages_role', 'messages', type_='check')
     
     # Recreate original tenant isolation policies
     op.execute(

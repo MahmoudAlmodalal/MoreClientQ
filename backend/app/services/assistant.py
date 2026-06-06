@@ -123,7 +123,7 @@ async def delete_assistant(
     conv_count_res = await db.execute(
         select(func.count(Conversation.id)).where(
             Conversation.assistant_id == assistant_id,
-            Conversation.status == "active",
+            Conversation.status.in_(["bot", "handoff"]),
             Conversation.tenant_id == tenant_id
         )
     )

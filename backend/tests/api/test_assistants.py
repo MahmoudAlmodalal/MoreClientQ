@@ -262,7 +262,7 @@ async def test_delete_assistant_active_conversations_blocked(client: AsyncClient
             tenant_id=tenant_uuid,
             assistant_id=assistant.id,
             session_token="session-123",
-            status="active"
+            status="bot"
         )
         session.add(conversation)
         await session.commit()
@@ -299,7 +299,7 @@ async def test_delete_assistant_cascade_cleanup(client: AsyncClient, registered_
             tenant_id=tenant_uuid,
             assistant_id=assistant.id,
             session_token="session-456",
-            status="ended"  # Non-active conversation
+            status="closed"  # Non-active conversation
         )
         session.add(conversation)
         
