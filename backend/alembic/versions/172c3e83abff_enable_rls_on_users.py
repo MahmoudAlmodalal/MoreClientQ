@@ -18,11 +18,64 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conname = 'uq_users_tenant_email'
+            ) THEN
+                ALTER TABLE users DROP CONSTRAINT uq_users_tenant_email;
+            END IF;
+
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conname = 'uq_users_email'
+            ) THEN
+                ALTER TABLE users ADD CONSTRAINT uq_users_email UNIQUE (email);
+            END IF;
+        END $$;
+        """
+    )
     op.execute("ALTER TABLE users ENABLE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE users FORCE ROW LEVEL SECURITY;")
     op.execute(
-        "CREATE POLICY IF NOT EXISTS tenant_isolation ON users "
-        "USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);"
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_policies
+                WHERE schemaname = current_schema()
+                  AND tablename = 'users'
+                  AND policyname = 'tenant_isolation'
+            ) THEN
+                CREATE POLICY tenant_isolation ON users
+                USING (
+                    current_setting('app.bypass_rls', true) = 'on'
+                    OR tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID
+                )
+                WITH CHECK (
+                    current_setting('app.bypass_rls', true) = 'on'
+                    OR tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID
+                );
+            ELSE
+                DROP POLICY tenant_isolation ON users;
+                CREATE POLICY tenant_isolation ON users
+                USING (
+                    current_setting('app.bypass_rls', true) = 'on'
+                    OR tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID
+                )
+                WITH CHECK (
+                    current_setting('app.bypass_rls', true) = 'on'
+                    OR tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID
+                );
+            END IF;
+        END $$;
+        """
     )
 
 

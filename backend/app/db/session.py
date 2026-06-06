@@ -46,12 +46,23 @@ async def get_db(request: Request = None):
             tenant_id = getattr(request.state, "tenant_id", None)
         if tenant_id:
             try:
-                await session.execute(
-                    text(f"SET LOCAL app.current_tenant_id = '{tenant_id}'")
-                )
+                await set_tenant_context(session, str(tenant_id))
             except Exception as e:
                 logger.warning(f"Failed to set app.current_tenant_id: {e}")
         yield session
+
+async def set_tenant_context(session: AsyncSession, tenant_id: str) -> None:
+    """Bind the current transaction to a tenant for PostgreSQL RLS policies."""
+    await session.execute(
+        text("SELECT set_config('app.current_tenant_id', :tenant_id, true)"),
+        {"tenant_id": tenant_id},
+    )
+
+async def enable_rls_bypass(session: AsyncSession) -> None:
+    """Enable service-only RLS bypass for the current transaction."""
+    await session.execute(
+        text("SELECT set_config('app.bypass_rls', 'on', true)")
+    )
 
 async def check_db_health(session: AsyncSession) -> tuple[bool, float, str | None]:
     start_time = time.perf_counter()

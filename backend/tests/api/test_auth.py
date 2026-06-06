@@ -4,6 +4,7 @@ import jwt
 from httpx import AsyncClient
 from sqlalchemy import text, update
 from app.db.session import SessionLocal
+from app.db.session import enable_rls_bypass
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.core.config import settings
@@ -102,6 +103,7 @@ async def test_login_invalid_credentials(client: AsyncClient, registered_user):
 async def test_login_deactivated_account(client: AsyncClient, registered_user):
     # Deactivate the user in DB
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         await session.execute(
             update(User)
             .where(User.email == registered_user["owner_email"])
@@ -121,6 +123,7 @@ async def test_login_deactivated_account(client: AsyncClient, registered_user):
 async def test_login_deactivated_tenant(client: AsyncClient, registered_user):
     # Deactivate the tenant in DB
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         await session.execute(
             update(Tenant)
             .where(Tenant.slug == "acme")

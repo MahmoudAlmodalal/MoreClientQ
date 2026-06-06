@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 import uuid
 
-from app.db.session import get_db
+from app.db.session import enable_rls_bypass, get_db
 from app.schemas.auth import (
     TenantRegister,
     RegistrationResponse,
@@ -15,11 +15,14 @@ from app.services.user import register_tenant_with_owner, get_user_by_email
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.core.security import (
+    get_current_user,
     verify_password,
     create_access_token,
     create_refresh_token,
     verify_token
 )
+from app.schemas.team import AcceptInviteRequest, AcceptInviteResponse, AcceptInviteData
+from app.services.auth import accept_invitation
 from app.core.config import settings
 
 router = APIRouter()
@@ -46,6 +49,7 @@ async def login(
     db: AsyncSession = Depends(get_db)
 ):
     """Authenticate credentials and return session tokens."""
+    await enable_rls_bypass(db)
     user = await get_user_by_email(db, payload.email)
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(
@@ -92,12 +96,28 @@ async def login(
         "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
+@router.post("/invite/accept", response_model=AcceptInviteResponse)
+async def accept_invite(
+    payload: AcceptInviteRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    user, email = await accept_invitation(
+        db=db,
+        token=payload.token,
+        password=payload.password,
+    )
+    return AcceptInviteResponse(
+        data=AcceptInviteData(user_id=user.id, email=email, role=user.role)
+    )
+
+
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
     payload: TokenRefreshRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Generate a new access token using a refresh token."""
+    await enable_rls_bypass(db)
     token_claims = verify_token(payload.refresh_token)
     if not token_claims or token_claims.get("type") != "refresh":
         raise HTTPException(
@@ -142,3 +162,7 @@ async def refresh(
         "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
+@router.get("/me")
+async def me(current_user: dict = Depends(get_current_user)):
+    """Return verified JWT claims for the authenticated user."""
+    return current_user

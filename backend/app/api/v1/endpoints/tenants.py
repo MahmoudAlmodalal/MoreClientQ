@@ -3,6 +3,7 @@ Tenant management endpoints.
 
 Exposes internal and admin tenant operations:
   - GET /tenants/resolve/{slug} — Internal slug resolution for Next.js middleware.
+  - DELETE /tenants/self — Tenant offboarding (owner only).
 """
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Header, status
@@ -15,6 +16,8 @@ from app.db.session import get_db
 from app.models.tenant import Tenant
 from app.core.redis import redis_cache
 from app.core.config import settings
+from app.core.security import require_roles
+from app.schemas.team import TenantOffboardResponse
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +139,39 @@ async def resolve_tenant_slug(
         slug=slug,
         is_active=True,
     )
+
+
+@router.delete(
+    "/self",
+    response_model=TenantOffboardResponse,
+    summary="Tenant offboarding (cascade purge)",
+    description=(
+        "Owner-only endpoint that cascade-deletes all tenant database records "
+        "and invalidates the tenant slug cache. Must be called with owner credentials."
+    ),
+)
+async def offboard_tenant(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_roles("owner")),
+):
+    tenant_id = uuid.UUID(current_user["tenant_id"])
+
+    # Fetch the tenant
+    tenant = await db.get(Tenant, tenant_id)
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found",
+        )
+
+    # Invalidate Redis slug cache
+    cache_key = _slug_cache_key(tenant.slug)
+    await redis_cache.delete(cache_key)
+
+    # Cascade delete tenant (all related records deleted via FK ON DELETE CASCADE)
+    await db.delete(tenant)
+    await db.commit()
+
+    logger.info(f"Tenant '{tenant.slug}' ({tenant_id}) offboarded successfully.")
+
+    return TenantOffboardResponse()

@@ -14,7 +14,7 @@ import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals
 // ---------------------------------------------------------------------------
 // Import the pure helper first — no Next.js request objects needed
 // ---------------------------------------------------------------------------
-import { extractTenantSlug } from "../middleware";
+import { extractTenantSlug, normalizeApiBaseUrl } from "../middleware";
 
 // ---------------------------------------------------------------------------
 // extractTenantSlug — pure unit tests
@@ -67,6 +67,14 @@ describe("extractTenantSlug", () => {
   it("returns null when subdomain is empty", () => {
     // e.g. ".localhost" — edge case
     expect(extractTenantSlug(".localhost", PLATFORM)).toBeNull();
+  });
+});
+
+describe("normalizeApiBaseUrl", () => {
+  it("normalizes backend roots and /api URLs to /api/v1", () => {
+    expect(normalizeApiBaseUrl("http://backend:8000")).toBe("http://backend:8000/api/v1");
+    expect(normalizeApiBaseUrl("http://backend:8000/api")).toBe("http://backend:8000/api/v1");
+    expect(normalizeApiBaseUrl("http://backend:8000/api/v1")).toBe("http://backend:8000/api/v1");
   });
 });
 

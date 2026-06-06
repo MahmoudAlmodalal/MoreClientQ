@@ -72,7 +72,7 @@ def upgrade() -> None:
     sa.Column('tenant_id', sa.UUID(), nullable=False),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('tenant_id', 'email', name='uq_users_tenant_email')
+    sa.UniqueConstraint('email', name='uq_users_email')
     )
     op.create_index(op.f('ix_users_tenant_id'), 'users', ['tenant_id'], unique=False)
     op.create_table('conversations',
@@ -141,7 +141,14 @@ def upgrade() -> None:
         # Create tenant isolation policy
         op.execute(
             f"CREATE POLICY tenant_isolation ON {table} "
-            f"USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);"
+            f"USING ("
+            f"current_setting('app.bypass_rls', true) = 'on' OR "
+            f"tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID"
+            f") "
+            f"WITH CHECK ("
+            f"current_setting('app.bypass_rls', true) = 'on' OR "
+            f"tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID"
+            f");"
         )
 
 

@@ -2,9 +2,11 @@ import uuid
 import re
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.core.security import get_password_hash
+from app.db.session import enable_rls_bypass, set_tenant_context
 from fastapi import HTTPException, status
 
 def validate_tenant_slug(slug: str) -> bool:
@@ -36,6 +38,8 @@ async def register_tenant_with_owner(
             detail="Tenant slug must be lowercase, alphanumeric, and between 1 and 63 characters."
         )
 
+    await enable_rls_bypass(db)
+
     # 2. Check if slug is unique
     existing_tenant = await get_tenant_by_slug(db, tenant_slug)
     if existing_tenant:
@@ -66,6 +70,7 @@ async def register_tenant_with_owner(
     await db.flush()  # Generate tenant.id
 
     # 5. Create Owner User
+    await set_tenant_context(db, str(tenant.id))
     hashed_password = get_password_hash(owner_password)
     user = User(
         tenant_id=tenant.id,
@@ -77,7 +82,21 @@ async def register_tenant_with_owner(
     )
     db.add(user)
     
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        message = str(exc.orig).lower()
+        if "uq_users_email" in message or "users_email" in message:
+            detail = f"Email '{owner_email}' is already registered."
+        elif "tenants" in message and "slug" in message:
+            detail = f"Tenant slug '{tenant_slug}' is already taken."
+        else:
+            detail = "Registration failed due to a conflicting record."
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail,
+        ) from exc
     await db.refresh(tenant)
     await db.refresh(user)
     

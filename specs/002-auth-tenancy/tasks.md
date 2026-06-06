@@ -139,16 +139,16 @@
 **Independent Test**: Invite user, accept via registration token, verify list, and offboard tenant to clean up db.
 
 ### Tests for User Story 6
-- [ ] T027 [P] [US6] Write integration tests for invitation creation, acceptance, role updating, and offboarding in `backend/tests/api/test_team.py`
+- [X] T027 [P] [US6] Write integration tests for invitation creation, acceptance, role updating, and offboarding in `backend/tests/api/test_team.py`
 
 ### Implementation for User Story 6
-- [ ] T028 [P] [US6] Define SQLAlchemy database model for Invitation in `backend/app/models/invitation.py`
+- [X] T028 [P] [US6] Define SQLAlchemy database model for Invitation in `backend/app/models/invitation.py`
 - [X] T029 [P] [US6] Define SQLAlchemy database model for QuotaLog in `backend/app/models/quota_log.py`
-- [ ] T030 [US6] Create Alembic migration script creating `invitations` table (with `quota_logs` already migrated) and enabling RLS in `backend/alembic/versions/`
-- [ ] T031 [US6] Implement invitation creation and acceptance logic in `backend/app/services/auth.py`
-- [ ] T032 [US6] Implement team endpoints (invite, list, update role, delete) in `backend/app/api/v1/endpoints/users.py`
-- [ ] T033 [US6] Implement accept invitation endpoint (`POST /api/v1/auth/invite/accept`) in `backend/app/api/v1/endpoints/auth.py`
-- [ ] T034 [US6] Implement tenant offboarding / cascade purge API (`DELETE /api/v1/tenants/self`) in `backend/app/api/v1/endpoints/tenants.py`
+- [X] T030 [US6] Create Alembic migration script creating `invitations` table (with `quota_logs` already migrated) and enabling RLS in `backend/alembic/versions/`
+- [X] T031 [US6] Implement invitation creation and acceptance logic in `backend/app/services/auth.py`
+- [X] T032 [US6] Implement team endpoints (invite, list, update role, delete) in `backend/app/api/v1/endpoints/users.py`
+- [X] T033 [US6] Implement accept invitation endpoint (`POST /api/v1/auth/invite/accept`) in `backend/app/api/v1/endpoints/auth.py`
+- [X] T034 [US6] Implement tenant offboarding / cascade purge API (`DELETE /api/v1/tenants/self`) in `backend/app/api/v1/endpoints/tenants.py`
 
 **Checkpoint**: Team workspace management and offboarding cycles are complete.
 

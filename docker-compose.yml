@@ -24,7 +24,8 @@ services:
       - /app/node_modules
     environment:
       - NEXT_PUBLIC_ROOT_DOMAIN=${NEXT_PUBLIC_ROOT_DOMAIN:-platform.com}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+      - NEXT_PUBLIC_PLATFORM_HOSTNAME=${NEXT_PUBLIC_PLATFORM_HOSTNAME:-platform.com}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:8000/api/v1}
       - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your_nextauth_secret_here}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost}

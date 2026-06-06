@@ -16,8 +16,12 @@ import { NextRequest, NextResponse } from "next/server";
 // ---------------------------------------------------------------------------
 
 /** Backend internal API base URL. Reads from env at build/runtime. */
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+const RAW_API_BASE_URL =
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8000";
+
+const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL);
 
 /**
  * Shared secret that identifies this Next.js service to the backend.
@@ -32,7 +36,9 @@ const INTERNAL_SECRET =
  * e.g. "localhost" in local dev or "platform.com" in production.
  */
 const PLATFORM_HOSTNAME =
-  process.env.NEXT_PUBLIC_PLATFORM_HOSTNAME ?? "localhost";
+  process.env.NEXT_PUBLIC_PLATFORM_HOSTNAME ??
+  process.env.NEXT_PUBLIC_ROOT_DOMAIN ??
+  "localhost";
 
 /**
  * URL prefixes that should always bypass tenant resolution.
@@ -87,6 +93,13 @@ export function extractTenantSlug(
   if (!subdomain || subdomain === "www" || subdomain === "api") return null;
 
   return subdomain;
+}
+
+export function normalizeApiBaseUrl(url: string): string {
+  const trimmed = url.replace(/\/+$/, "");
+  if (trimmed.endsWith("/api/v1")) return trimmed;
+  if (trimmed.endsWith("/api")) return `${trimmed}/v1`;
+  return `${trimmed}/api/v1`;
 }
 
 // ---------------------------------------------------------------------------

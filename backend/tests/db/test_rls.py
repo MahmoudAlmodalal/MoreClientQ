@@ -5,6 +5,7 @@ from sqlalchemy import text, update
 from sqlalchemy.future import select
 
 from app.db.session import SessionLocal
+from app.db.session import enable_rls_bypass
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.core.security import get_password_hash
@@ -13,6 +14,7 @@ from app.core.security import get_password_hash
 async def _seed_data():
     """Create two tenants each with one user for RLS isolation testing."""
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         tenant_a = Tenant(
             slug="tenant-a",
             name="Tenant A",

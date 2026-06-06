@@ -23,5 +23,5 @@ class User(Base, TenantMixin):
     )
 
     __table_args__ = (
-        UniqueConstraint("tenant_id", "email", name="uq_users_tenant_email"),
+        UniqueConstraint("email", name="uq_users_email"),
     )

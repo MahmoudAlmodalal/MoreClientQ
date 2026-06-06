@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select, text
 from app.db.session import SessionLocal
+from app.db.session import enable_rls_bypass
 from app.models.tenant import Tenant
 from app.models.user import User
 
@@ -48,6 +49,7 @@ async def test_registration_success(client: AsyncClient):
 
     # Verify db records exist
     async with SessionLocal() as session:
+        await enable_rls_bypass(session)
         # Check Tenant
         tenant_res = await session.execute(select(Tenant).where(Tenant.slug == "acme"))
         tenant = tenant_res.scalar_one_or_none()

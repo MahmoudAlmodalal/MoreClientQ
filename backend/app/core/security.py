@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 import jwt
 from app.core.config import settings
+from app.core.redis import redis_cache
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -73,6 +74,13 @@ def verify_token(token: str) -> dict[str, Any] | None:
     except jwt.PyJWTError:
         return None
 
+async def is_token_revoked(payload: dict[str, Any]) -> bool:
+    """Check whether a JWT identifier has been blocklisted in Redis."""
+    jti = payload.get("jti")
+    if not jti:
+        return True
+    return await redis_cache.exists(f"jwt:blocklist:{jti}")
+
 async def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme)
@@ -96,6 +104,12 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if await is_token_revoked(payload):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -157,4 +171,3 @@ def get_password_hash(password: str) -> str:
     """Generate bcrypt hash of password."""
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-
