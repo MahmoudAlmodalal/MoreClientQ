@@ -122,14 +122,14 @@
 
 ### Tests for User Story 4
 
-- [ ] T028 [P] [US4] Write Playwright E2E tests for navigation redirects in `frontend/e2e/navigation.spec.ts`
+- [X] T028 [P] [US4] Write Playwright E2E tests for navigation redirects in `frontend/e2e/navigation.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T029 [P] [US4] Create sticky Navigation bar component with features/pricing/docs/login links in `frontend/components/landing/Nav.tsx`
-- [ ] T030 [P] [US4] Create Footer sitemap and social links component in `frontend/components/landing/Footer.tsx`
-- [ ] T031 [US4] Integrate Nav and Footer into the marketing shell in `frontend/app/(marketing)/layout.tsx`
-- [ ] T032 [US4] Write Jest component tests for Nav links in `frontend/components/landing/__tests__/Nav.test.tsx`
+- [X] T029 [P] [US4] Create sticky Navigation bar component with features/pricing/docs/login links in `frontend/components/landing/Nav.tsx`
+- [X] T030 [P] [US4] Create Footer sitemap and social links component in `frontend/components/landing/Footer.tsx`
+- [X] T031 [US4] Integrate Nav and Footer into the marketing shell in `frontend/app/(marketing)/layout.tsx`
+- [X] T032 [US4] Write Jest component tests for Nav links in `frontend/components/landing/__tests__/Nav.test.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
