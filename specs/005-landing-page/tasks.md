@@ -81,17 +81,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Write Playwright E2E tests for CTAs and email redirect in `frontend/e2e/conversion.spec.ts`
+- [X] T016 [P] [US2] Write Playwright E2E tests for CTAs and email redirect in `frontend/e2e/conversion.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Create Footer CTA component with email validation input in `frontend/components/landing/FooterCta.tsx`
-- [ ] T018 [P] [US2] Create Hero section component with primary/secondary CTAs in `frontend/components/landing/Hero.tsx`
-- [ ] T019 [P] [US2] Create Partner logo section component in `frontend/components/landing/LogoStrip.tsx`
-- [ ] T020 [P] [US2] Create Features Grid section component (6 capabilities) in `frontend/components/landing/Features.tsx`
-- [ ] T021 [P] [US2] Create How It Works section component (3 setup steps) in `frontend/components/landing/HowItWorks.tsx`
-- [ ] T022 [US2] Assemble static sections (Hero, LogoStrip, Features, HowItWorks, FooterCta) on the page in `frontend/app/(marketing)/page.tsx`
-- [ ] T023 [US2] Write Jest component tests for email validation and redirection logic in `frontend/components/landing/__tests__/FooterCta.test.tsx`
+- [X] T017 [P] [US2] Create Footer CTA component with email validation input in `frontend/components/landing/FooterCta.tsx`
+- [X] T018 [P] [US2] Create Hero section component with primary/secondary CTAs in `frontend/components/landing/Hero.tsx`
+- [X] T019 [P] [US2] Create Partner logo section component in `frontend/components/landing/LogoStrip.tsx`
+- [X] T020 [P] [US2] Create Features Grid section component (6 capabilities) in `frontend/components/landing/Features.tsx`
+- [X] T021 [P] [US2] Create How It Works section component (3 setup steps) in `frontend/components/landing/HowItWorks.tsx`
+- [X] T022 [US2] Assemble static sections (Hero, LogoStrip, Features, HowItWorks, FooterCta) on the page in `frontend/app/(marketing)/page.tsx`
+- [X] T023 [US2] Write Jest component tests for email validation and redirection logic in `frontend/components/landing/__tests__/FooterCta.test.tsx`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
